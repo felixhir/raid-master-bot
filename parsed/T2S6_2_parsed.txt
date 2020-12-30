@@ -1,0 +1,51 @@
+Rank,Player,ID,Attacks,On-Strat Damage
+1,Fhaarkas,xb3gkb5,24,14635477
+2,Shadoof,ke43b73,24,13639974
+3,Hound,d5dwkrk,24,13347324
+4,HK sucks,22g8w4b,20,13051440
+5,Ellenor Wolfpack,d5xn57p,24,12817748
+6,yoinblack,exmb5k5,24,11210896
+7,Ben,d5g3q43,24,8628586
+8,Ralfiito,gmqm8ee,20,8580336
+9,Lord of Darkness,4mdd2md,20,7027251
+10,Goddess Hel,6mnrxp9,20,6856847
+11,Mozzzi,7r37pn2,20,6826467
+12,Sage,6mxmmnm,16,6039600
+13,StarLord,xbenq8n,16,5520645
+14,God,2gmrkwy,19,5400982
+15,SamaelKaball,455dng7,16,5359267
+16,Betelgeuse,rr4xqpx,21,5260122
+17,Мастер,8mr7bxe,24,5151818
+18,Call Me Curts,87dgw7n,8,5036137
+19,Krosa,7dnd2ex,16,4956537
+20,Bayu Amarta,7wxwwq6,16,4821333
+21,Angel Slayer,n382d6k,16,4805638
+22,xyty,65k54kr,10,3714436
+23,GermanPowerKing,5kmd96q,12,3378939
+24,thk,ke62w4m,12,3210382
+25,Shark,dk9d3be,10,2776630
+26,Ernis,6mnmrkb,8,2333665
+27,Lyly23,6m2emk9,8,1933489
+28,Black phallus,n42b544,4,1928890
+29,Oldfolks,qdg8gy5,6,1835411
+30,Lord Venom,kxkw5ye,3,1185209
+31,Johnaz,n9kdpq8,4,673583
+32,Lewinja,p54q6pk,4,491708
+33,Thyrmon,dkgype3,2,384665
+34,jujuto,w3kb9yk,1,258317
+35,剑圣,g8d5e2y,1,187251
+36,Shadow,dmdee8x,1,133727
+37,Vincyfire,9m5xy5e,0,0
+37,Gonkalo,yg2nwy4,0,0
+37,StealthPrism,kmg8x2q,0,0
+37,이게맞나,n37g55g,0,0
+37,Jamimpf,bgm2n9k,0,0
+37,boo,4mnxdp,0,0
+37,Been_to_Hell,x6qybqk,0,0
+37,Buttholelicker,9m2mxd2,0,0
+37,Le Clout,39y4pdb,0,0
+37,ow,x4k7g5q,0,0
+37,IEatBreadPeople,ygm5rdx,0,0
+37,rambo7842,q63kn3d,0,0
+37,Ninjitsu master,w864w2y,0,0
+37,SportArena93,pm553e8,0,0

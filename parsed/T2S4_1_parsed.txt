@@ -1,0 +1,48 @@
+Rank,Player,ID,Attacks,On-Strat Damage
+1,Shadoof,ke43b73,24,10646103
+2,Ellenor Wolfpack,d5xn57p,24,10014911
+3,Fhaarkas,xb3gkb5,24,9442022
+4,yoinblack,exmb5k5,24,9003980
+5,Yeti,exb2nwk,24,8521606
+6,Hound,d5dwkrk,19,7437629
+7,Maestro espadach,5e42n9g,17,6194831
+8,Call Me Curts,87dgw7n,13,5465593
+9,Goddess Hel,6mnrxp9,24,5458168
+10,Pedro,w8ynb2x,24,4131543
+11,Lord of Darkness,4mdd2md,16,3809744
+12,Roopeshero,xbq5ged,20,3509150
+13,跨下有巨蟲,9y7pe99,20,3054498
+14,Harbinger,ker2d2d,11,2851272
+15,Krocket,d5y2d3d,15,2128598
+16,Mozzzi,7r37pn2,8,2076024
+17,hollow,xbw8xmr,12,1770560
+18,Johnny Creep,6mqbx84,15,1699823
+19,Yongetzu Master,p567w5y,14,1437483
+20,thk,ke62w4m,8,1353376
+21,Strife,wbknbd7,8,1352420
+22,Sage,6mxmmnm,8,1337637
+23,Oninlan,bgqr78p,8,1241295
+24,Mediaware,exbx8d2,8,1189530
+25,Jamimpf,bgm2n9k,6,1179620
+26,MistressChaos,exbq9xq,8,1143649
+27,IIDX,6mx9y68,4,1037460
+28,Rangnarok,pm9dpp4,6,886615
+29,剑圣,g8d5e2y,7,855468
+30,beauty jio,3egqx42,7,797813
+31,Artpax,4mp766d,3,589725
+32,しゆばるつ,q6n2564,5,489982
+33,Troy,p52e85w,2,407116
+34,THETE,bqy3g6,3,350512
+35,Scout,bg9pekk,1,216885
+36,Killchestra,bgmedgb,4,201553
+37,ow,x4k7g5q,3,150361
+38,Zengat,w8y5m33,1,148568
+39,Raz7_,ey42m7p,1,126163
+40,Endxr,d585k4y,0,0
+40,ソードマスター,9mb3wxw,0,0
+40,Vincyfire,9m5xy5e,0,0
+40,Chi,32y44bb,0,0
+40,LaM TeMPu,2g9bxdb,0,0
+40,Mordin,ex9y2pq,0,0
+40,ViciousPie,6mx34b6,0,0
+40,Maestro lean,nyp7nd6,0,0
