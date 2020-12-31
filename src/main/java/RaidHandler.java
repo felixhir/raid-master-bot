@@ -12,11 +12,15 @@ public class RaidHandler {
     LinkedList<Raid> raids;
     Raid recentRaid;
 
-    public RaidHandler(String raidCsv){
-        players = new LinkedList<>();
-        raids = new LinkedList<>();
-        createRaid(raidCsv);
-        //parseRaids();
+    public RaidHandler(String raidCsv, boolean fromMain){
+        if(fromMain){
+            players = new LinkedList<>();
+            raids = new LinkedList<>();
+            createRaid(raidCsv);
+            //parseRaids();
+        } else {
+            createRaid(raidCsv);
+        }
     }
 
     private void parseRaids(){
