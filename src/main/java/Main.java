@@ -9,6 +9,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import javax.security.auth.login.LoginException;
 import java.io.File;
 
+
 public class Main extends ListenerAdapter {
 
     RaidHandler handler;
@@ -32,6 +33,15 @@ public class Main extends ListenerAdapter {
         initialize();
     }
 
+    /**
+     * contains the bots behaviour upon receiving a message in a previously defined channel
+     *
+     * if the message is a raid it will be saved as a .txt file and the handler will be called
+     *
+     * otherwise the message is deleted
+     *
+     * @param event contains the event of a received message
+     */
     @Override
     public void onMessageReceived(MessageReceivedEvent event){
         Message message = event.getMessage();
@@ -60,6 +70,9 @@ public class Main extends ListenerAdapter {
         }
     }
 
+    /**
+     * when the bot connects to a server it will go over all messages of a defined channel to check for older raids
+     */
     public static void initialize(){
         System.out.println("scanning older messages...");
         String messageStart;

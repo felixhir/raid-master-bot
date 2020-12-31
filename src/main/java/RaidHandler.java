@@ -7,12 +7,22 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 
+/**
+ * The RaidHandler is responsible for the parsing of all saved and read raids as well as the respective players
+ */
 public class RaidHandler {
     PlayerList players;
     PlayerList activePlayers;
     LinkedList<Raid> raids;
     Raid recentRaid;
 
+
+    /**
+     * Instantiates a Handler that either saves a new raid or saves a raid and reads in all existing raids
+     *
+     * @param raidCsv contains the raid-to-be-saved as a text message sent into a Discord channel
+     * @param fromMain tells the Handler if it should only save an old raid or parse everything
+     */
     public RaidHandler(String raidCsv, boolean fromMain){
         if(fromMain){
             players = new PlayerList();
@@ -32,6 +42,9 @@ public class RaidHandler {
         }
     }
 
+    /**
+     * Creates a Raid instance of every file in the raids-directory
+     */
     private void parseRaids(){
         File[] files = new File("./raids").listFiles();
 
@@ -54,10 +67,19 @@ public class RaidHandler {
         }
     }
 
+    /**
+     * Creates a Player object from an array of string values
+     * @param record consists of a single line from any Raids csv and includes position, name, id, damage, attacks in that order
+     * @return a player object
+     */
     private Player createPlayer(String[] record){
         return new Player(record[1],record[2],Integer.parseInt(record[3]),Integer.parseInt(record[4]));
     }
 
+    /**
+     * saves a String as content of a Raids csv
+     * @param csv the message received in Discord
+     */
     private void createRaid(String csv){
         String filename = csv.substring(0,4);
         try{
@@ -70,6 +92,10 @@ public class RaidHandler {
         }
     }
 
+    /**
+     * compares all Raids of the LinkedList raids
+     * @return the clans highest, latest raid
+     */
     private Raid getRecentRaid(){
         Raid recent = null;
         for(int i = 0; i < raids.size()-1; i++){
@@ -78,6 +104,9 @@ public class RaidHandler {
         return recent;
     }
 
+    /**
+     * fills the PlayerList players (activePlayers) with all (active) players from all (most recent) raids
+     */
     public void totalPlayers(){
         for(Raid r: raids){
             for(Player p: r.getPlayers().getList()){
@@ -98,6 +127,10 @@ public class RaidHandler {
         }
     }
 
+    /**
+     * updates the damage, name and attacks of a Player object from the PlayerList players
+     * @param p the Player whose statistics will be used to update an existing player
+     */
     private void updatePlayer(Player p){
         Player listedPlayer = players.getPlayerById(p.getId());
         listedPlayer.addAttacks(p.getAttacks());
