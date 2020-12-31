@@ -8,16 +8,25 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 
 public class RaidHandler {
-    LinkedList<Player> players;
+    PlayerList players;
+    PlayerList activePlayers;
     LinkedList<Raid> raids;
     Raid recentRaid;
 
     public RaidHandler(String raidCsv, boolean fromMain){
         if(fromMain){
-            players = new LinkedList<>();
+            players = new PlayerList();
+            activePlayers = new PlayerList();
             raids = new LinkedList<>();
+
             createRaid(raidCsv);
             parseRaids();
+
+            recentRaid = getRecentRaid();
+
+            totalPlayers();
+
+            System.out.println(recentRaid);
         } else {
             createRaid(raidCsv);
         }
@@ -60,4 +69,40 @@ public class RaidHandler {
             e.printStackTrace();
         }
     }
+
+    private Raid getRecentRaid(){
+        Raid recent = null;
+        for(int i = 0; i < raids.size()-1; i++){
+            recent = raids.get(i).moreRecent(raids.get(i+1));
+        }
+        return recent;
+    }
+
+    public void totalPlayers(){
+        for(Raid r: raids){
+            for(Player p: r.getPlayers().getList()){
+                if(players.containsId(p.getId())){
+                    updatePlayer(p);
+                } else {
+                    players.addPlayer(p);
+                }
+            }
+        }
+        for(Player p: players.getList()){
+            if(!p.getName().equals(recentRaid.getPlayers().getPlayerById(p.getId()).getName())){
+                p.setName(recentRaid.getPlayers().getPlayerById(p.getId()).getName());
+            }
+            if(recentRaid.getPlayers().containsId(p.getId())){
+                activePlayers.addPlayer(p);
+            }
+        }
+    }
+
+    private void updatePlayer(Player p){
+        Player listedPlayer = players.getPlayerById(p.getId());
+        listedPlayer.addAttacks(p.getAttacks());
+        listedPlayer.addDamage(p.getDamage());
+        listedPlayer.setName(p.getName());
+    }
+
 }
