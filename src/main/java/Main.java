@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import javax.security.auth.login.LoginException;
+import java.io.File;
 
 public class Main extends ListenerAdapter {
 
@@ -27,7 +28,7 @@ public class Main extends ListenerAdapter {
                 channel = c;
             }
         }
-        System.out.println("scanning older messages...");
+
         initialize();
     }
 
@@ -35,14 +36,23 @@ public class Main extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent event){
         Message message = event.getMessage();
         String messageStart = "";
+        File[] files = null;
         try {
             messageStart = message.getContentRaw().substring(0, 4);
+            files = new File("./raids").listFiles();
         } catch (Exception ignored){
 
         }
         if((message.getChannel().getName().equals(channelName)) && (NumberUtils.isCreatable(messageStart))){
+            for (File f: files){
+                if((message.getContentRaw().substring(0,4)+".txt").equals((f.getName()))){
+                    System.out.println("raid already exists - deleting message...");
+                    message.delete().queue();
+                    return;
+                }
+            }
             handler = new RaidHandler(message.getContentRaw(), true);
-            System.out.println("Received new Raid.");
+            System.out.println("received new raid.");
             message.addReaction("U+2705").queue();
         } else {
             message.delete().queue();
@@ -50,6 +60,7 @@ public class Main extends ListenerAdapter {
     }
 
     public static void initialize(){
+        System.out.println("scanning older messages...");
         String messageStart;
 
         for(Message m: channel.getIterableHistory()){
@@ -64,6 +75,8 @@ public class Main extends ListenerAdapter {
                 m.delete().queue();
             }
         }
+
+        System.out.println("captured every raid!");
     }
 
 }

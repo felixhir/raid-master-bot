@@ -16,6 +16,10 @@ public class Player {
         this.damage += dmg;
     }
 
+    public void addAttacks(int attacks) {
+        this.attacks += attacks;
+    }
+
     public String getName(){
         return this.name;
     }
@@ -34,5 +38,9 @@ public class Player {
 
     public int getDamage(){
         return this.damage;
+    }
+
+    public String toString(){
+        return this.name + " (" + this.id + ") has dealt " + this.damage + " with " + this.attacks +" attacks.";
     }
 }

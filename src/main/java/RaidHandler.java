@@ -17,29 +17,32 @@ public class RaidHandler {
             players = new LinkedList<>();
             raids = new LinkedList<>();
             createRaid(raidCsv);
-            //parseRaids();
+            parseRaids();
         } else {
             createRaid(raidCsv);
         }
     }
 
     private void parseRaids(){
-        File[] files = new File("./parsed").listFiles();
+        File[] files = new File("./raids").listFiles();
 
         for(File file: files){
             try(BufferedReader br = Files.newBufferedReader(Paths.get(String.valueOf(file)))) {
                 CSVReader csvReader = new CSVReader(br);
+                Raid raid = new Raid(Integer.parseInt(file.getName().substring(0,1)),Integer.parseInt(file.getName().substring(1,3)),
+                        Integer.parseInt(file.getName().substring(3,4)));
 
                 String[] record;
                 csvReader.readNext();
+                csvReader.readNext();
                 while ((record = csvReader.readNext()) != null){
-                    players.add(createPlayer(record));
+                    raid.addPlayer(createPlayer(record));
                 }
+                raids.add(raid);
             } catch (IOException | CsvValidationException e) {
                 e.printStackTrace();
             }
         }
-        System.out.println(players);
     }
 
     private Player createPlayer(String[] record){
