@@ -44,6 +44,7 @@ public class Main extends ListenerAdapter {
 
         }
         if((message.getChannel().getName().equals(channelName)) && (NumberUtils.isCreatable(messageStart))){
+            assert files != null;
             for (File f: files){
                 if((message.getContentRaw().substring(0,4)+".txt").equals((f.getName()))){
                     System.out.println("raid already exists - deleting message...");
@@ -51,8 +52,8 @@ public class Main extends ListenerAdapter {
                     return;
                 }
             }
-            handler = new RaidHandler(message.getContentRaw(), true);
             System.out.println("received new raid.");
+            handler = new RaidHandler(message.getContentRaw(), true);
             message.addReaction("U+2705").queue();
         } else {
             message.delete().queue();

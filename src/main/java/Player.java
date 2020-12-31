@@ -1,9 +1,10 @@
 public class Player {
 
     private String name;
-    private String id;
+    private final String id;
     private int attacks;
     private int damage;
+    private Raid latestRaid;
 
     public Player(String name, String id, int attacks, int damage){
         this.name = name;
@@ -42,5 +43,13 @@ public class Player {
 
     public String toString(){
         return this.name + " (" + this.id + ") has dealt " + this.damage + " with " + this.attacks +" attacks.";
+    }
+
+    public void setLatestRaid(Raid r){
+        this.latestRaid = r;
+    }
+
+    public Raid getLatestRaid(){
+        return this.latestRaid;
     }
 }
