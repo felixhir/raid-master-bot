@@ -1,5 +1,6 @@
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -23,8 +24,11 @@ public class Main extends ListenerAdapter {
         Message message = event.getMessage();
 
         if(message.getChannel().getName().equals("raid-input")){
-            handler = new RaidHandler();
-            System.out.println("Received new Raid.");
+            if(message.getEmotes().isEmpty()) {
+                handler = new RaidHandler(message.toString());
+                System.out.println("Received new Raid.");
+                message.addReaction("U+2705").queue();
+            }
         } else {
             return;
         }

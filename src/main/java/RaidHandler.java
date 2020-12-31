@@ -12,7 +12,7 @@ public class RaidHandler {
     LinkedList<Player> players;
     LinkedList<Raid> raids;
 
-    public RaidHandler(){
+    public RaidHandler(String raidCsv){
         players = new LinkedList<>();
         raids = new LinkedList<>();
         parseRaids();
@@ -38,6 +38,6 @@ public class RaidHandler {
     }
 
     private Player createPlayer(String[] record){
-        return new Player(record[1],record[2],Integer.valueOf(record[3]),Integer.valueOf(record[4]));
+        return new Player(record[1],record[2],Integer.parseInt(record[3]),Integer.parseInt(record[4]));
     }
 }
