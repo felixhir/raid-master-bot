@@ -10,6 +10,9 @@ import javax.security.auth.login.LoginException;
 import java.io.File;
 
 
+/**
+ * @author felixhir
+ */
 public class Main extends ListenerAdapter {
 
     RaidHandler handler;
