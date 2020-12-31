@@ -16,6 +16,7 @@ dependencies {
     compile 'net.dv8tion:JDA:4.2.0_224'
     compile group: 'org.slf4j', name: 'slf4j-jdk14', version: '1.7.30'
     compile 'com.opencsv:opencsv:5.3'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
 }
 
 test {
