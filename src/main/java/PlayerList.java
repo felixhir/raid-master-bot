@@ -66,7 +66,6 @@ public class PlayerList extends LinkedList<Player> {
         for(int i = start; i < end+1; i++){
             list.addPlayer(players.get(i));
         }
-        System.out.println(list.size());
         return list;
     }
 

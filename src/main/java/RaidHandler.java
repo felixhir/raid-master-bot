@@ -35,7 +35,6 @@ public class RaidHandler {
             recentRaid = getRecentRaid();
 
             totalPlayers();
-            System.out.println(activePlayers.getTopPlayers());
         } else {
             createRaid(raidCsv);
         }
@@ -133,8 +132,11 @@ public class RaidHandler {
             }
         }
         for(Player p: players.getList()){
-            if(!p.getName().equals(recentRaid.getPlayers().getPlayerById(p.getId()).getName())){
-                p.setName(recentRaid.getPlayers().getPlayerById(p.getId()).getName());
+            try {
+                if (!p.getName().equals(recentRaid.getPlayers().getPlayerById(p.getId()).getName())) {
+                    p.setName(recentRaid.getPlayers().getPlayerById(p.getId()).getName());
+                }
+            } catch (Exception ignored){
             }
             if(recentRaid.getPlayers().containsId(p.getId())){
                 activePlayers.addPlayer(p);
