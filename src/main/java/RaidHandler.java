@@ -6,15 +6,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
+import java.util.regex.Pattern;
 
 /**
  * The RaidHandler is responsible for the parsing of all saved and read raids as well as the respective players
  */
 public class RaidHandler {
-    PlayerList players;
-    PlayerList activePlayers;
-    LinkedList<Raid> raids;
-    Raid recentRaid;
+    private PlayerList players;
+    private PlayerList activePlayers;
+    private LinkedList<Raid> raids;
+    private Raid recentRaid;
 
 
     /**
@@ -24,7 +25,7 @@ public class RaidHandler {
      * @param fromMain tells the Handler if it should only save an old raid or parse everything
      */
     public RaidHandler(String raidCsv, boolean fromMain){
-        if(fromMain){
+        if (fromMain) {
             players = new PlayerList();
             activePlayers = new PlayerList();
             raids = new LinkedList<>();
@@ -36,7 +37,6 @@ public class RaidHandler {
 
             totalPlayers();
 
-            System.out.println(recentRaid);
         } else {
             createRaid(raidCsv);
         }
@@ -118,8 +118,11 @@ public class RaidHandler {
             }
         }
         for(Player p: players.getList()){
-            if(!p.getName().equals(recentRaid.getPlayers().getPlayerById(p.getId()).getName())){
-                p.setName(recentRaid.getPlayers().getPlayerById(p.getId()).getName());
+            try {
+                if (!p.getName().equals(recentRaid.getPlayers().getPlayerById(p.getId()).getName())) {
+                    p.setName(recentRaid.getPlayers().getPlayerById(p.getId()).getName());
+                }
+            } catch (Exception ignored){
             }
             if(recentRaid.getPlayers().containsId(p.getId())){
                 activePlayers.addPlayer(p);

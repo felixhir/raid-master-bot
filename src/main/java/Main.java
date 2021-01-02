@@ -8,6 +8,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -16,9 +18,10 @@ import java.io.File;
 public class Main extends ListenerAdapter {
 
     RaidHandler handler;
-    private static final boolean shouldCleanUp = false;
     private static final String channelName = "raid-input";
     private static TextChannel channel;
+    final String RAID_PATTERN = "([0-9]{4}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
+    final Pattern p = Pattern.compile(RAID_PATTERN);
 
     public static void main(String[] args) throws LoginException, InterruptedException {
         String token = System.getenv("RAID_MASTER_TOKEN");
@@ -47,16 +50,18 @@ public class Main extends ListenerAdapter {
      */
     @Override
     public void onMessageReceived(MessageReceivedEvent event){
+
         Message message = event.getMessage();
-        String messageStart = "";
+
+        Matcher m = p.matcher(message.getContentRaw());
+
         File[] files = null;
         try {
-            messageStart = message.getContentRaw().substring(0, 4);
             files = new File("./raids").listFiles();
         } catch (Exception ignored){
 
         }
-        if((message.getChannel().getName().equals(channelName)) && (NumberUtils.isCreatable(messageStart))){
+        if((message.getChannel().getName().equals(channelName) && m.find())){
             assert files != null;
             for (File f: files){
                 if((message.getContentRaw().substring(0,4)+".txt").equals((f.getName()))){
@@ -65,11 +70,13 @@ public class Main extends ListenerAdapter {
                     return;
                 }
             }
+
             System.out.println("received new raid.");
             handler = new RaidHandler(message.getContentRaw(), true);
             message.addReaction("U+2705").queue();
         } else {
-            message.delete().queue();
+            System.out.println("no new raid detected");
+            message.addReaction("U+274C").queue();
         }
     }
 
@@ -88,8 +95,6 @@ public class Main extends ListenerAdapter {
             if(NumberUtils.isCreatable(messageStart) && m.getReactions().isEmpty()){
                 new RaidHandler(m.getContentRaw(), false);
                 m.addReaction("U+2705").queue();
-            } else if(!NumberUtils.isCreatable(messageStart) && shouldCleanUp) {
-                m.delete().queue();
             }
         }
 
