@@ -1,8 +1,10 @@
+import org.jetbrains.annotations.NotNull;
+
 import java.util.LinkedList;
 
-public class PlayerList {
+public class PlayerList extends LinkedList<Player> {
 
-    private LinkedList<Player> players;
+    private final LinkedList<Player> players;
 
     public PlayerList(){
         players = new LinkedList<>();
@@ -34,6 +36,7 @@ public class PlayerList {
         return players.get(index);
     }
 
+    @Override
     public int size(){
         return players.size();
     }
@@ -42,11 +45,48 @@ public class PlayerList {
         return this.players;
     }
 
+    @Override
     public String toString(){
         StringBuilder returnString = new StringBuilder();
         for(Player p: players){
             returnString.append(p.toString()).append("\n");
         }
         return returnString.toString();
+    }
+
+    /**
+     * Implements a subList() for PlayerList
+     * @param start index of first player
+     * @param end index of last player (inclusive)
+     * @return list of players from index start to end
+     */
+    @Override
+    public @NotNull PlayerList subList(int start, int end){
+        PlayerList list = new PlayerList();
+        for(int i = start; i < end+1; i++){
+            list.addPlayer(players.get(i));
+        }
+        System.out.println(list.size());
+        return list;
+    }
+
+    /**
+     * Determines the 5 players with the highest damage per attack (dpa)
+     * @return PlayerList with 5 highest ranked players
+     */
+    public PlayerList getTopPlayers(){
+        PlayerList list = new PlayerList();
+        for(Player p: this.getList()){
+            for(int i = 0; i < list.size(); i++){
+                if(p.getDpa() > list.get(i).getDpa()){
+                    list.getList().add(i, p);
+                    break;
+                }
+            }
+            if(!list.getList().contains(p)){
+                list.addPlayer(p);
+            }
+        }
+        return list.subList(0,4);
     }
 }

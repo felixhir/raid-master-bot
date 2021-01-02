@@ -35,11 +35,26 @@ public class RaidHandler {
             recentRaid = getRecentRaid();
 
             totalPlayers();
-
-            System.out.println(recentRaid);
+            System.out.println(activePlayers.getTopPlayers());
         } else {
             createRaid(raidCsv);
         }
+    }
+
+    /**
+     * gives a PlayerList object of all raid participants
+     * @return a list of all players
+     */
+    public PlayerList getPlayers(){
+        return this.players;
+    }
+
+    /**
+     * gives a PlayerList object of all participants of the most recent raid
+     * @return a list of the recent players
+     */
+    public PlayerList getActivePlayers(){
+        return this.activePlayers;
     }
 
     /**

@@ -1,3 +1,5 @@
+import java.text.DecimalFormat;
+
 public class Player {
 
     private String name;
@@ -42,7 +44,8 @@ public class Player {
     }
 
     public String toString(){
-        return this.name + " (" + this.id + ") has dealt " + this.damage + " with " + this.attacks +" attacks.";
+        DecimalFormat format = new DecimalFormat("#");
+        return this.name + " (" + this.id + ") has dealt " + this.damage + " with " + this.attacks +" attacks (" + format.format(this.getDpa()) + " DpA).";
     }
 
     public void setLatestRaid(Raid r){
@@ -51,5 +54,19 @@ public class Player {
 
     public Raid getLatestRaid(){
         return this.latestRaid;
+    }
+
+    /**
+     * evaluates the damage per attack (dpa) of a player
+     * @return the dpa
+     */
+    public double getDpa(){
+        double dpa = 0;
+        try{
+            //noinspection IntegerDivisionInFloatingPointContext
+            dpa = this.damage / this.attacks;
+        } catch (ArithmeticException ignored){
+        }
+        return dpa;
     }
 }
