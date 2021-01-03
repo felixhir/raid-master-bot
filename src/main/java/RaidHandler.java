@@ -1,11 +1,14 @@
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -16,30 +19,37 @@ public class RaidHandler {
     private PlayerList activePlayers;
     private LinkedList<Raid> raids;
     private Raid recentRaid;
+    final String RAID_PATTERN = "([0-9]{4}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
+    final Pattern p = Pattern.compile(RAID_PATTERN);
 
 
     /**
-     * Instantiates a Handler that either saves a new raid or saves a raid and reads in all existing raids
+     * instantiates a handler that parses all channel messages and files into raids if they match the RAID_PATTERN
      *
-     * @param raidCsv contains the raid-to-be-saved as a text message sent into a Discord channel
-     * @param fromMain tells the Handler if it should only save an old raid or parse everything
+     * @param c the channel this handler will take for initialisation
      */
-    public RaidHandler(String raidCsv, boolean fromMain){
-        if (fromMain) {
-            players = new PlayerList();
-            activePlayers = new PlayerList();
-            raids = new LinkedList<>();
+    public RaidHandler(TextChannel c){
 
-            createRaid(raidCsv);
-            parseRaids();
-
-            recentRaid = getRecentRaid();
-
-            totalPlayers();
-        } else {
-            createRaid(raidCsv);
+        System.out.println("initialising handler from messages...");
+        for(Message m: c.getIterableHistory()){
+            if(m.getReactions().isEmpty()){
+                Matcher matcher = p.matcher(m.getContentRaw());
+                if(matcher.find()){
+                    m.addReaction("U+2705").queue();
+                    this.createRaid(m.getContentRaw());
+                } else {
+                    m.addReaction("U+274C").queue();
+                }
+            }
         }
+
+        System.out.println("initialising handler from files...");
+        raids = this.parseRaids();
+        recentRaid = this.getRecentRaid();
+        players = this.determineAllPlayers();
+        activePlayers = this.determineRecentPlayers();
     }
+
 
     /**
      * gives a PlayerList object of all raid participants
@@ -49,6 +59,7 @@ public class RaidHandler {
         return this.players;
     }
 
+
     /**
      * gives a PlayerList object of all participants of the most recent raid
      * @return a list of the recent players
@@ -57,11 +68,14 @@ public class RaidHandler {
         return this.activePlayers;
     }
 
+
     /**
-     * Creates a Raid instance of every file in the raids-directory
+     * creates a raid object for every raid log file
+     * @return list of raids
      */
-    private void parseRaids(){
+    private LinkedList<Raid> parseRaids(){
         File[] files = new File("./raids").listFiles();
+        LinkedList<Raid> list = new LinkedList<>();
 
         for(File file: files){
             try(BufferedReader br = Files.newBufferedReader(Paths.get(String.valueOf(file)))) {
@@ -75,12 +89,14 @@ public class RaidHandler {
                 while ((record = csvReader.readNext()) != null){
                     raid.addPlayer(createPlayer(record));
                 }
-                raids.add(raid);
+                list.add(raid);
             } catch (IOException | CsvValidationException e) {
                 e.printStackTrace();
             }
         }
+        return list;
     }
+
 
     /**
      * Creates a Player object from an array of string values
@@ -91,21 +107,27 @@ public class RaidHandler {
         return new Player(record[1],record[2],Integer.parseInt(record[3]),Integer.parseInt(record[4]));
     }
 
+
     /**
      * saves a String as content of a Raids csv
      * @param csv the message received in Discord
      */
-    private void createRaid(String csv){
+    public void createRaid(String csv){
         String filename = csv.substring(0,4);
         try{
             FileOutputStream fileStream = new FileOutputStream("./raids/"+filename+".txt");
             OutputStreamWriter writer = new OutputStreamWriter(fileStream, StandardCharsets.UTF_8);
             writer.write(csv.substring(4));
             writer.close();
+            raids = parseRaids();
+            recentRaid = this.getRecentRaid();
+            players = this.determineAllPlayers();
+            activePlayers = this.determineRecentPlayers();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     /**
      * compares all Raids of the LinkedList raids
@@ -119,41 +141,65 @@ public class RaidHandler {
         return recent;
     }
 
+
     /**
-     * fills the PlayerList players (activePlayers) with all (active) players from all (most recent) raids
+     * gives a list of all players who ever took part in any raid
+     *
+     * @return list of all players
      */
-    public void totalPlayers(){
+    public PlayerList determineAllPlayers(){
+        PlayerList list = new PlayerList();
         for(Raid r: raids){
             for(Player p: r.getPlayers().getList()){
-                if(players.containsId(p.getId())){
-                    updatePlayer(p);
+                if(list.containsId(p.getId())){
+                    Player updatePlayer = list.getPlayerById(p.getId());
+                    list.remove(updatePlayer);
+                    list.add(updatePlayer(updatePlayer, p));
                 } else {
-                    players.addPlayer(p);
+                    list.addPlayer(p);
                 }
             }
         }
-        for(Player p: players.getList()){
+        for(Player p: list.getList()){
             try {
                 if (!p.getName().equals(recentRaid.getPlayers().getPlayerById(p.getId()).getName())) {
                     p.setName(recentRaid.getPlayers().getPlayerById(p.getId()).getName());
                 }
             } catch (Exception ignored){
             }
-            if(recentRaid.getPlayers().containsId(p.getId())){
-                activePlayers.addPlayer(p);
-            }
         }
+        return list;
     }
 
+
     /**
-     * updates the damage, name and attacks of a Player object from the PlayerList players
-     * @param p the Player whose statistics will be used to update an existing player
+     * reads out the players from the most recent raid with their totalled stats
+     *
+     * @return list of players who took part in the most recent raid
      */
-    private void updatePlayer(Player p){
-        Player listedPlayer = players.getPlayerById(p.getId());
-        listedPlayer.addAttacks(p.getAttacks());
-        listedPlayer.addDamage(p.getDamage());
-        listedPlayer.setName(p.getName());
+    private PlayerList determineRecentPlayers(){
+        PlayerList list = new PlayerList();
+        for(Player p: players.getList()){
+            if(recentRaid.getPlayers().containsId(p.getId())){
+                list.addPlayer(p);
+            }
+        }
+        return list;
+    }
+
+
+    /**
+     * Takes a player and updates them with the stats of another player
+     *
+     * @param old the player to update
+     * @param update the player which stats to use for the update
+     * @return a player with updated statistics
+     */
+    private Player updatePlayer(Player old, Player update){
+        old.addAttacks(update.getAttacks());
+        old.addDamage(update.getDamage());
+        old.setName(update.getName());
+        return old;
     }
 
 }
