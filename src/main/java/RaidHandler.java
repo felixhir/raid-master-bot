@@ -87,7 +87,7 @@ public class RaidHandler {
                 csvReader.readNext();
                 csvReader.readNext();
                 while ((record = csvReader.readNext()) != null){
-                    raid.addPlayer(createPlayer(record));
+                    raid.addPlayer(createPlayer(record, raid));
                 }
                 list.add(raid);
             } catch (IOException | CsvValidationException e) {
@@ -103,8 +103,8 @@ public class RaidHandler {
      * @param record consists of a single line from any Raids csv and includes position, name, id, damage, attacks in that order
      * @return a player object
      */
-    private Player createPlayer(String[] record){
-        return new Player(record[1],record[2],Integer.parseInt(record[3]),Integer.parseInt(record[4]));
+    private Player createPlayer(String[] record, Raid raid){
+        return new Player(record[1], record[2], Integer.parseInt(record[3]), Integer.parseInt(record[4]), raid);
     }
 
 
@@ -154,7 +154,7 @@ public class RaidHandler {
                 if(list.containsId(p.getId())){
                     Player updatePlayer = list.getPlayerById(p.getId());
                     list.remove(updatePlayer);
-                    list.add(updatePlayer(updatePlayer, p));
+                    list.add(updatePlayer(updatePlayer, p, r));
                 } else {
                     list.addPlayer(p);
                 }
@@ -195,10 +195,12 @@ public class RaidHandler {
      * @param update the player which stats to use for the update
      * @return a player with updated statistics
      */
-    private Player updatePlayer(Player old, Player update){
+    private Player updatePlayer(Player old, Player update, Raid r){
         old.addAttacks(update.getAttacks());
         old.addDamage(update.getDamage());
         old.setName(update.getName());
+        old.addParticipation();
+        old.addRaid(r);
         return old;
     }
 
