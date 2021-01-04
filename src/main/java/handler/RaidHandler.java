@@ -64,7 +64,7 @@ public class RaidHandler {
 
         System.out.println("initialising handler from files...");
         raids = this.parseRaids();
-        recentRaid = this.getRecentRaid();
+        recentRaid = raids.getMostRecentRaid();
         players = this.determineAllPlayers();
         activePlayers = this.determineRecentPlayers();
         System.out.println("read " + raids.size() + " raids, totalling " + players.size() + " players");
@@ -142,7 +142,7 @@ public class RaidHandler {
             writer.write(csv.substring(4));
             writer.close();
             raids = parseRaids();
-            recentRaid = this.getRecentRaid();
+            recentRaid = raids.getMostRecentRaid();
             players = this.determineAllPlayers();
             activePlayers = this.determineRecentPlayers();
         } catch (IOException e) {
@@ -150,11 +150,11 @@ public class RaidHandler {
         }
     }
 
-
-    /**
+    /**@deprecated with the addition of RaidLists, they have their own implementation of this method
      * compares all Raids of the LinkedList raids
      * @return the clans highest, latest raid
      */
+    @Deprecated
     private Raid getRecentRaid(){
         Raid recent = null;
         try {

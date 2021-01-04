@@ -37,7 +37,7 @@ public class Player {
         this.raids.addRaid(raid);
     }
 
-    public LinkedList<Raid> getRaids(){
+    public RaidList getRaids(){
         return this.raids;
     }
 
@@ -68,14 +68,6 @@ public class Player {
     public String toString(){
         DecimalFormat format = new DecimalFormat("#");
         return this.name + " (" + this.id + ") has dealt " + this.damage + " with " + this.attacks +" attacks (" + format.format(this.getDpa()) + " DpA).";
-    }
-
-    public Raid getLatestRaid(){
-        Raid recent = raids.get(0);
-        for(int i = 0; i < raids.size() - 1; i++){
-            recent = recent.moreRecent(raids.get(i+1));
-        }
-        return recent;
     }
 
     /**

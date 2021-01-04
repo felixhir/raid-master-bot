@@ -97,7 +97,7 @@ public class MessageHandler {
                 "\nDpA: " +
                 df.format(p.getDpa()) +
                 "\nLatest raid: " +
-                getPublicRaidString(p.getLatestRaid());
+                getPublicRaidString(p.getRaids().getMostRecentRaid());
     }
 
     private String getPublicRaidString(Raid r){
