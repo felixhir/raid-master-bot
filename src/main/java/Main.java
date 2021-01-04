@@ -1,5 +1,7 @@
+import handler.RaidHandler;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -25,7 +27,9 @@ public class Main extends ListenerAdapter {
     public static void main(String[] args) throws LoginException, InterruptedException {
         String token = System.getenv("RAID_MASTER_TOKEN");
 
-        JDA jda = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(),new Main()).build();
+        JDABuilder builder = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(),new Main());
+        builder.setActivity(Activity.listening(channelName));
+        JDA jda = builder.build();
 
         jda.awaitReady();
 

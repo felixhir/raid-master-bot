@@ -1,3 +1,5 @@
+package objects;
+
 import java.text.DecimalFormat;
 
 public class Player {

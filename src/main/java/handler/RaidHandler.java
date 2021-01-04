@@ -1,7 +1,12 @@
+package handler;
+
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import objects.Player;
+import objects.PlayerList;
+import objects.Raid;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -48,6 +53,7 @@ public class RaidHandler {
         recentRaid = this.getRecentRaid();
         players = this.determineAllPlayers();
         activePlayers = this.determineRecentPlayers();
+        System.out.println("read " + raids.size() + " raids, totalling " + players.size() + " players");
     }
 
 
