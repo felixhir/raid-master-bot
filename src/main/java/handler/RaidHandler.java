@@ -7,12 +7,12 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import objects.Player;
 import objects.PlayerList;
 import objects.Raid;
+import objects.RaidList;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 public class RaidHandler {
     private PlayerList players;
     private PlayerList activePlayers;
-    private LinkedList<Raid> raids;
+    private RaidList raids;
     private Raid recentRaid;
     final String RAID_PATTERN = "([0-9]{4}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
     final Pattern p = Pattern.compile(RAID_PATTERN);
@@ -68,6 +68,7 @@ public class RaidHandler {
         players = this.determineAllPlayers();
         activePlayers = this.determineRecentPlayers();
         System.out.println("read " + raids.size() + " raids, totalling " + players.size() + " players");
+        System.out.println("\n----------DONE <> BOT RUNNING----------\n");
     }
 
 
@@ -93,9 +94,9 @@ public class RaidHandler {
      * creates a raid object for every raid log file
      * @return list of raids
      */
-    private LinkedList<Raid> parseRaids(){
+    private RaidList parseRaids(){
         File[] files = new File("./raids").listFiles();
-        LinkedList<Raid> list = new LinkedList<>();
+        RaidList list = new RaidList();
 
         for(File file: files){
             try(BufferedReader br = Files.newBufferedReader(Paths.get(String.valueOf(file)))) {
@@ -109,11 +110,12 @@ public class RaidHandler {
                 while ((record = csvReader.readNext()) != null){
                     raid.addPlayer(createPlayer(record, raid));
                 }
-                list.add(raid);
+                list.addRaid(raid);
             } catch (IOException | CsvValidationException e) {
                 e.printStackTrace();
             }
         }
+        System.out.println("Found " + list.size() + " raids");
         return list;
     }
 
@@ -154,10 +156,15 @@ public class RaidHandler {
      * @return the clans highest, latest raid
      */
     private Raid getRecentRaid(){
-        Raid recent = raids.get(0);
+        Raid recent = null;
+        try {
+            recent = raids.get(0);
+        } catch (Exception ignored){
+        }
         for(int i = 0; i < raids.size()-1; i++){
             recent = raids.get(i).moreRecent(raids.get(i+1));
         }
+        System.out.println("Most recent raid: " + recent);
         return recent;
     }
 
@@ -169,7 +176,7 @@ public class RaidHandler {
      */
     public PlayerList determineAllPlayers(){
         PlayerList list = new PlayerList();
-        for(Raid r: raids){
+        for(Raid r: raids.getList()){
             for(Player p: r.getPlayers().getList()){
                 if(list.containsId(p.getId())){
                     Player updatePlayer = list.getPlayerById(p.getId());
@@ -188,6 +195,7 @@ public class RaidHandler {
             } catch (Exception ignored){
             }
         }
+        System.out.println("Totalled up " + list.size() + " players");
         return list;
     }
 

@@ -10,14 +10,14 @@ public class Player {
     private int attacks;
     private int damage;
     private int participations;
-    private LinkedList<Raid> raids;
+    private RaidList raids;
 
     public Player(String name, String id, int attacks, int damage, Raid raid){
         this.name = name;
         this.id = id;
         this.attacks = attacks;
         this.damage = damage;
-        this.raids = new LinkedList<>();
+        this.raids = new RaidList();
         this.participations = 1;
     }
 
@@ -34,7 +34,7 @@ public class Player {
     }
 
     public void addRaid(Raid raid){
-        this.raids.add(raid);
+        this.raids.addRaid(raid);
     }
 
     public LinkedList<Raid> getRaids(){
