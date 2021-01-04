@@ -4,15 +4,19 @@ import handler.RaidHandler;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 
+import java.util.Locale;
+
 @SuppressWarnings("FieldMayBeFinal")
 public class Server {
-    private String name;
+    private final String name;
     private RaidHandler raidHandler;
-    private MessageChannel channel;
+    private final MessageChannel channel;
+    public final String directory;
 
     public Server(String n, MessageChannel c){
         this.name = n;
         this.channel = c;
+        this.directory = "./raids/"+n.toLowerCase(Locale.ROOT).replace(" ", "_") + "/";
     }
 
     public String getName(){

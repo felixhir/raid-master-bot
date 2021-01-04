@@ -27,6 +27,7 @@ public class Main extends ListenerAdapter {
 
     public static void main(String[] args) throws LoginException, InterruptedException {
         String token = System.getenv(BOT_NAME);
+        guildHandler = new GuildHandler();
 
         JDABuilder builder = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(),new Main());
         builder.setActivity(Activity.listening(CHANNEL_NAME + " or general"));
@@ -34,7 +35,6 @@ public class Main extends ListenerAdapter {
 
         jda.awaitReady();
 
-        guildHandler = new GuildHandler();
         for(Guild g: jda.getGuilds()){
             TextChannel textChannel = g.getDefaultChannel();
             for(TextChannel t: g.getTextChannels()){
