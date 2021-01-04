@@ -41,13 +41,12 @@ public class RaidHandler {
         for(Message m: c.getIterableHistory()){
             if(m.getReactions().isEmpty()){
                 Matcher matcher = p.matcher(m.getContentRaw());
-                if(matcher.find()){
 
+                if(matcher.find()){
                     try {
                         files = new File("./raids").listFiles();
                     } catch (Exception ignored){
                     }
-
                     assert files != null;
                     for (File f: files){
                         if((m.getContentRaw().substring(0,4)+".txt").equals((f.getName()))){

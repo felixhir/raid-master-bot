@@ -21,6 +21,15 @@ public class PlayerList extends LinkedList<Player> {
         return false;
     }
 
+    public boolean containsName(String name){
+        for (Player player : players) {
+            if (player.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void addPlayer(Player player){
         players.add(player);
     }
@@ -28,6 +37,15 @@ public class PlayerList extends LinkedList<Player> {
     public Player getPlayerById(String id){
         for(Player p: players){
             if(p.getId().equals(id)){
+                return p;
+            }
+        }
+        return null;
+    }
+
+    public Player getPlayerByName(String name){
+        for(Player p: players){
+            if(p.getName().equals(name)){
                 return p;
             }
         }
