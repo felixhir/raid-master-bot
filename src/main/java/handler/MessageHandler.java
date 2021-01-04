@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import objects.Player;
+import objects.Raid;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -94,7 +95,18 @@ public class MessageHandler {
                 "\nAttacks: " +
                 df.format(p.getAttacks()) +
                 "\nDpA: " +
-                df.format(p.getDpa());
+                df.format(p.getDpa()) +
+                "\nLatest raid: " +
+                getPublicRaidString(p.getLatestRaid());
+    }
+
+    private String getPublicRaidString(Raid r){
+        return "T" +
+                r.getTier() +
+                "S" +
+                r.getStage() +
+                " attempt #" +
+                r.getTries();
     }
 
 }
