@@ -36,10 +36,27 @@ public class RaidHandler {
     public RaidHandler(TextChannel c){
 
         System.out.println("initialising raids from messages...");
+        File[] files = null;
+
         for(Message m: c.getIterableHistory()){
             if(m.getReactions().isEmpty()){
                 Matcher matcher = p.matcher(m.getContentRaw());
                 if(matcher.find()){
+
+                    try {
+                        files = new File("./raids").listFiles();
+                    } catch (Exception ignored){
+                    }
+
+                    assert files != null;
+                    for (File f: files){
+                        if((m.getContentRaw().substring(0,4)+".txt").equals((f.getName()))){
+                            System.out.println("raid already exists - deleting message...");
+                            m.delete().queue();
+                            return;
+                        }
+                    }
+
                     m.addReaction("U+2705").queue();
                     this.createRaid(m.getContentRaw());
                 }
