@@ -55,7 +55,7 @@ public class MessageHandler {
             assert files != null;
             for (File f: files){
                 if((message.getContentRaw().substring(0,4)+".txt").equals((f.getName()))){
-                    System.out.println("raid already exists - deleting message...");
+                    System.out.println("raid already exists...");
                     message.addReaction("U+274C").queue();
                     System.out.println("raid marked\n-----------------");
                     return false;
@@ -91,7 +91,7 @@ public class MessageHandler {
     }
 
     private String getAvailableCommands() {
-        return "!stats: gives you somewhat detailed information about yourself (your discord nickname has to equal your ing" +
+        return "!stats: gives you somewhat detailed information about yourself (your discord nickname must match your ing)" +
                 "\n\n!commands: gives you an overview over available commands";
     }
 
