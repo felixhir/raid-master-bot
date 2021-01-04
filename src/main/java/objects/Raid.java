@@ -40,7 +40,7 @@ public class Raid {
 
     //returns the more recent raid of 2 raids
     public Raid moreRecent(Raid r){
-        Raid raid;
+        Raid raid = this;
         if (this.getTier() > r.getTier()){
             raid = this;
         } else if(this.getTier() == r.getTier()){

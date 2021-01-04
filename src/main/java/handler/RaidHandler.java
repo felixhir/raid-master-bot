@@ -35,15 +35,13 @@ public class RaidHandler {
      */
     public RaidHandler(TextChannel c){
 
-        System.out.println("initialising handler from messages...");
+        System.out.println("initialising raids from messages...");
         for(Message m: c.getIterableHistory()){
             if(m.getReactions().isEmpty()){
                 Matcher matcher = p.matcher(m.getContentRaw());
                 if(matcher.find()){
                     m.addReaction("U+2705").queue();
                     this.createRaid(m.getContentRaw());
-                } else {
-                    m.addReaction("U+274C").queue();
                 }
             }
         }
@@ -140,7 +138,7 @@ public class RaidHandler {
      * @return the clans highest, latest raid
      */
     private Raid getRecentRaid(){
-        Raid recent = null;
+        Raid recent = raids.get(0);
         for(int i = 0; i < raids.size()-1; i++){
             recent = raids.get(i).moreRecent(raids.get(i+1));
         }
