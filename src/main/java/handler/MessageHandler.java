@@ -56,8 +56,8 @@ public class MessageHandler {
             for (File f: files){
                 if((message.getContentRaw().substring(0,4)+".txt").equals((f.getName()))){
                     System.out.println("raid already exists - deleting message...");
-                    message.delete().queue();
-                    System.out.println("raid removed\n-----------------");
+                    message.addReaction("U+274C").queue();
+                    System.out.println("raid marked\n-----------------");
                     return false;
                 }
             }
@@ -71,6 +71,7 @@ public class MessageHandler {
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void handleCommand(){
         switch (message.getContentRaw().substring(1)){
             case "stats":
@@ -79,17 +80,26 @@ public class MessageHandler {
                 else
                     channel.sendMessage("I couldn't match your nickname to any participants name");
                 break;
+            case "help":
+            case "commands":
+                channel.sendMessage(getAvailableCommands()).queue();
+                break;
             default:
                 channel.sendMessage("no such command was found, check your spelling or use !commands to see available options").queue();
                 break;
         }
     }
 
+    private String getAvailableCommands() {
+        return "!stats: gives you somewhat detailed information about yourself (your discord nickname has to equal your ing" +
+                "\n\n!commands: gives you an overview over available commands";
+    }
+
     private String getPublicPlayerStats(String name){
         Player p = raidHandler.getPlayers().getPlayerByName(name);
         DecimalFormat df = new DecimalFormat("#,###");
 
-        return name +
+        return author.getAsMention() +
                 "\nDamage: " +
                 df.format(p.getDamage()) +
                 "\nAttacks: " +
