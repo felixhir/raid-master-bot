@@ -13,6 +13,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +25,7 @@ public class RaidHandler {
     private PlayerList activePlayers;
     private RaidList raids;
     private Raid recentRaid;
+    private final String directoryPath;
     final String RAID_PATTERN = "([0-9]{4}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
     final Pattern p = Pattern.compile(RAID_PATTERN);
 
@@ -33,42 +35,57 @@ public class RaidHandler {
      *
      * @param c the channel this handler will take for initialisation
      */
-    public RaidHandler(TextChannel c){
+    public RaidHandler(TextChannel c, String directoryPath){
 
-        System.out.println("initialising raids from messages...");
-        File[] files = null;
+        this.directoryPath = directoryPath;
+        File file;
+        File[] files;
 
-        for(Message m: c.getIterableHistory()){
-            if(m.getReactions().isEmpty()){
-                Matcher matcher = p.matcher(m.getContentRaw());
 
-                if(matcher.find()){
-                    try {
-                        files = new File("./raids").listFiles();
-                    } catch (Exception ignored){
-                    }
-                    assert files != null;
-                    for (File f: files){
-                        if((m.getContentRaw().substring(0,4)+".txt").equals((f.getName()))){
-                            System.out.println("raid already exists - deleting message...");
-                            m.delete().queue();
-                            return;
+        System.out.println("\ncreating handler for " + c.getGuild().getName());
+        try {
+            file = new File(directoryPath);
+            if(!file.isDirectory()) {
+                System.out.println("initial deploy on server " + c.getGuild().getName());
+                try {
+                    if (file.mkdir()) {
+                        System.out.println("new directory created: " + directoryPath);
+                        for (Message m : c.getIterableHistory()) {
+                            Matcher matcher = p.matcher(m.getContentRaw());
+
+                            if (matcher.find()) {
+                                try {
+                                    files = new File(directoryPath).listFiles();
+                                    for (File f : files) {
+                                        if (m.getContentRaw().startsWith(f.getName())) {
+                                            System.out.println("duplicated raid was found - marking it...");
+                                            m.addReaction("U+274C").queue();
+                                            return;
+                                        }
+                                    }
+                                } catch (Exception ignored) {
+                                }
+                                System.out.println("message " + m.getId() + " identified as raid, proceeding...");
+                                this.createRaid(m.getContentRaw());
+                            }
                         }
+                    } else {
+                        System.out.println("there was a problem setting up " + directoryPath);
                     }
-
-                    m.addReaction("U+2705").queue();
-                    this.createRaid(m.getContentRaw());
+                } catch (Exception exception) {
+                    System.out.println(Arrays.toString(exception.getStackTrace()));
                 }
-            }
-        }
+            } else {
+                System.out.println("evaluating files of existing directory...");
 
-        System.out.println("initialising handler from files...");
-        raids = this.parseRaids();
-        recentRaid = raids.getMostRecentRaid();
-        players = this.determineAllPlayers();
-        activePlayers = this.determineRecentPlayers();
-        System.out.println("read " + raids.size() + " raids, totalling " + players.size() + " players");
-        System.out.println("\n----------DONE <> BOT RUNNING----------\n");
+                raids = this.parseRaids();
+                recentRaid = raids.getMostRecentRaid();
+                players = this.determineAllPlayers();
+                activePlayers = this.determineRecentPlayers();
+                System.out.println("read " + raids.size() + " raids, totalling " + players.size() + " players in " + directoryPath);
+            }
+        } catch (Exception ignored){ //The file does not exist yet
+        }
     }
 
 
@@ -95,7 +112,7 @@ public class RaidHandler {
      * @return list of raids
      */
     private RaidList parseRaids(){
-        File[] files = new File("./raids").listFiles();
+        File[] files = new File(directoryPath).listFiles();
         RaidList list = new RaidList();
 
         for(File file: files){
@@ -137,7 +154,7 @@ public class RaidHandler {
     public void createRaid(String csv){
         String filename = csv.substring(0,4);
         try{
-            FileOutputStream fileStream = new FileOutputStream("./raids/"+filename+".txt");
+            FileOutputStream fileStream = new FileOutputStream(directoryPath+filename+".txt");
             OutputStreamWriter writer = new OutputStreamWriter(fileStream, StandardCharsets.UTF_8);
             writer.write(csv.substring(4));
             writer.close();
@@ -195,7 +212,6 @@ public class RaidHandler {
             } catch (Exception ignored){
             }
         }
-        System.out.println("Totalled up " + list.size() + " players");
         return list;
     }
 

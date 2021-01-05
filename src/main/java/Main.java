@@ -45,6 +45,7 @@ public class Main extends ListenerAdapter {
             }
             guildHandler.addServer(new Server(g.getName(), textChannel));
         }
+        System.out.println("\n- - - - - DONE | BOT RUNNING - - - - -\n");
     }
 
 
