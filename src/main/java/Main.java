@@ -63,7 +63,7 @@ public class Main extends ListenerAdapter {
         Message message = event.getMessage();
 
         if(!message.getAuthor().getName().equals("Raid Master")){
-            MessageHandler messageHandler = new MessageHandler(message, COMMAND_SIGN, guildHandler.getServerByName(message.getGuild().getName()).getRaidHandler());
+            MessageHandler messageHandler = new MessageHandler(message, COMMAND_SIGN, guildHandler.getServerByName(message.getGuild().getName()).getRaidHandler(), guildHandler.getServerByName(message.getGuild().getName()).getDirectoryPath());
             if(messageHandler.isNewRaid()) System.out.println("raid handled\n-----------------");
             if(messageHandler.isCommand()) System.out.println("command " + message.getContentRaw() + " handled\n-----------------");
         }

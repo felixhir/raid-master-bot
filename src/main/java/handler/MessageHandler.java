@@ -13,18 +13,20 @@ import java.util.regex.Pattern;
 
 public class MessageHandler {
 
-    private static Message message;
-    private static MessageChannel channel;
-    private static Member author;
+    private final Message message;
+    private final MessageChannel channel;
+    private final Member author;
     private static String sign;
-    private static RaidHandler raidHandler;
+    private final RaidHandler raidHandler;
+    private final String directoryPath;
 
-    public MessageHandler(Message m, String s, RaidHandler h) {
+    public MessageHandler(Message m, String s, RaidHandler h, String directoryPath) {
         message = m;
         channel = m.getChannel();
         author = m.getMember();
         sign = s;
         raidHandler = h;
+        this.directoryPath = directoryPath;
     }
 
 
@@ -53,7 +55,7 @@ public class MessageHandler {
         if(m.find()){
 
             try {
-                files = new File("./raids").listFiles();
+                files = new File(directoryPath).listFiles();
             } catch (Exception ignored){
             }
 
