@@ -2,7 +2,7 @@ package objects;
 
 import handler.RaidHandler;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.util.Locale;
 
@@ -10,13 +10,15 @@ import java.util.Locale;
 public class Server {
     private final String name;
     private RaidHandler raidHandler;
-    private final MessageChannel channel;
-    public final String directory;
+    private final TextChannel channel;
+    public final String directoryPath;
 
-    public Server(String n, MessageChannel c){
+    public Server(String n, TextChannel c){
         this.name = n;
         this.channel = c;
-        this.directory = "./raids/"+n.toLowerCase(Locale.ROOT).replace(" ", "_") + "/";
+        String directoryName = n.toLowerCase(Locale.ROOT).replace(" ", "_");
+        this.directoryPath = "./raids/"+ directoryName + "/";
+        this.raidHandler = instantiateRaidHandler();
     }
 
     public String getName(){
@@ -37,5 +39,13 @@ public class Server {
 
     public RaidHandler getRaidHandler() {
         return this.raidHandler;
+    }
+
+    public String getDirectoryPath(){
+        return directoryPath;
+    }
+
+    private RaidHandler instantiateRaidHandler(){
+        return new RaidHandler(channel.getGuild(), directoryPath);
     }
 }

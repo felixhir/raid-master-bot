@@ -2,6 +2,7 @@ package handler;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import objects.Player;
@@ -33,40 +34,43 @@ public class RaidHandler {
     /**
      * instantiates a handler that parses all channel messages and files into raids if they match the RAID_PATTERN
      *
-     * @param c the channel this handler will take for initialisation
+     * @param guild the guild this handler is responsible for
      */
-    public RaidHandler(TextChannel c, String directoryPath){
+    public RaidHandler(Guild guild, String directoryPath){
 
         this.directoryPath = directoryPath;
         File file;
         File[] files;
 
 
-        System.out.println("\ncreating handler for " + c.getGuild().getName());
+        System.out.println("\ncreating handler for " + guild.getName());
         try {
             file = new File(directoryPath);
             if(!file.isDirectory()) {
-                System.out.println("initial deploy on server " + c.getGuild().getName());
+                System.out.println("initial deploy on server " + guild.getName());
                 try {
                     if (file.mkdir()) {
                         System.out.println("new directory created: " + directoryPath);
-                        for (Message m : c.getIterableHistory()) {
-                            Matcher matcher = p.matcher(m.getContentRaw());
+                        for(TextChannel c: guild.getTextChannels()) {
+                            for (Message m : c.getIterableHistory()) {
+                                Matcher matcher = p.matcher(m.getContentRaw());
 
-                            if (matcher.find()) {
-                                try {
-                                    files = new File(directoryPath).listFiles();
-                                    for (File f : files) {
-                                        if (m.getContentRaw().startsWith(f.getName())) {
-                                            System.out.println("duplicated raid was found - marking it...");
-                                            m.addReaction("U+274C").queue();
-                                            return;
+                                if (matcher.find()) {
+                                    try {
+                                        files = new File(directoryPath).listFiles();
+                                        for (File f : files) {
+                                            if (m.getContentRaw().startsWith(f.getName())) {
+                                                System.out.println("duplicate was found - marking it...");
+                                                m.addReaction("U+274C").queue();
+                                                return;
+                                            }
                                         }
+                                    } catch (Exception ignored) {
                                     }
-                                } catch (Exception ignored) {
+                                    System.out.println("message " + m.getId() + " identified as raid, proceeding...");
+                                    m.addReaction("U+2705").queue();
+                                    this.createRaid(m.getContentRaw());
                                 }
-                                System.out.println("message " + m.getId() + " identified as raid, proceeding...");
-                                this.createRaid(m.getContentRaw());
                             }
                         }
                     } else {

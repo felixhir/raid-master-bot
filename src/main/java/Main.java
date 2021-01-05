@@ -6,6 +6,8 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import objects.Server;
@@ -65,6 +67,28 @@ public class Main extends ListenerAdapter {
             if(messageHandler.isNewRaid()) System.out.println("raid handled\n-----------------");
             if(messageHandler.isCommand()) System.out.println("command " + message.getContentRaw() + " handled\n-----------------");
         }
+    }
+
+
+    @Override
+    public void onGuildJoin(GuildJoinEvent event){
+        Guild guild = event.getGuild();
+        System.out.println("Raid Master was added to '" + guild.getName() + "'");
+        TextChannel channel = guild.getDefaultChannel();
+
+        for(TextChannel t: guild.getTextChannels()){
+            if(CHANNEL_NAME.equals(t.getName())) channel = t;
+        }
+
+        guildHandler.addServer(new Server(guild.getName(), channel));
+    }
+
+
+    @Override
+    public void onGuildLeave(GuildLeaveEvent event){
+        Guild guild = event.getGuild();
+        System.out.println("'" + guild.getName() + "' just removed Raid Master from their server");
+        guildHandler.removeServer(guild.getName());
     }
 
 }
