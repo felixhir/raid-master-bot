@@ -30,8 +30,13 @@ public class MessageHandler {
 
     public boolean isCommand(){
         if(message.getContentRaw().substring(0,1).equals(sign)){
-            this.handleCommand();
-            return true;
+            if(raidHandler.getRaidAmount() == 0){
+                channel.sendMessage("Sorry, it seems like there are no raids in my database yet!").queue();
+                return false;
+            } else {
+                this.handleCommand();
+                return true;
+            }
         } else {
             return false;
         }
@@ -71,14 +76,14 @@ public class MessageHandler {
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void handleCommand(){
         switch (message.getContentRaw().substring(1)){
             case "stats":
-                if(raidHandler.getPlayers().containsName(author.getNickname()))
+                if(raidHandler.getPlayers().containsName(author.getNickname())) {
                     channel.sendMessage(getPublicPlayerStats(author.getNickname())).queue();
-                else
-                    channel.sendMessage("I couldn't match your nickname to any participants name");
+                } else {
+                    channel.sendMessage("I couldn't match your nickname to any participants name").queue();
+                }
                 break;
             case "help":
             case "commands":

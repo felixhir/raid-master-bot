@@ -73,6 +73,9 @@ public class RaidHandler {
                                 }
                             }
                         }
+                        if(raids.isEmpty()) {
+                            System.out.println("no raids found in the history of '" + guild.getName() + "'");
+                        }
                     } else {
                         System.out.println("there was a problem setting up " + directoryPath);
                     }
@@ -83,9 +86,11 @@ public class RaidHandler {
                 System.out.println("evaluating files of existing directory...");
 
                 raids = this.parseRaids();
-                recentRaid = raids.getMostRecentRaid();
-                players = this.determineAllPlayers();
-                activePlayers = this.determineRecentPlayers();
+                if(!raids.getList().isEmpty()) {
+                    recentRaid = raids.getMostRecentRaid();
+                    players = this.determineAllPlayers();
+                    activePlayers = this.determineRecentPlayers();
+                }
                 System.out.println("read " + raids.size() + " raids, totalling " + players.size() + " players in " + directoryPath);
             }
         } catch (Exception ignored){ //The file does not exist yet
@@ -136,7 +141,7 @@ public class RaidHandler {
                 e.printStackTrace();
             }
         }
-        System.out.println("Found " + list.size() + " raids");
+        System.out.println("Found " + list.size() + " raid(s)");
         return list;
     }
 
@@ -250,6 +255,10 @@ public class RaidHandler {
         old.addParticipation();
         old.addRaid(r);
         return old;
+    }
+
+    public int getRaidAmount(){
+        return raids.size();
     }
 
 }

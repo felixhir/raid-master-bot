@@ -1,7 +1,6 @@
 package objects;
 
 import java.text.DecimalFormat;
-import java.util.LinkedList;
 
 public class Player {
 
@@ -10,7 +9,7 @@ public class Player {
     private int attacks;
     private int damage;
     private int participations;
-    private RaidList raids;
+    private final RaidList raids;
 
     public Player(String name, String id, int attacks, int damage, Raid raid){
         this.name = name;
@@ -19,6 +18,7 @@ public class Player {
         this.damage = damage;
         this.raids = new RaidList();
         this.participations = 1;
+        addRaid(raid);
     }
 
     public void addDamage(int dmg){
