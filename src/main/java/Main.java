@@ -17,6 +17,7 @@ import javax.security.auth.login.LoginException;
 
 /**
  * @author felixhir
+ * @version 0.1
  */
 public class Main extends ListenerAdapter {
 
