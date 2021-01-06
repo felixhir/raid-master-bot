@@ -7,4 +7,4 @@ steps:
     args: ["assemble"]
   - name: gradle:6.7-jdk8
     entrypoint: gradle
-    args: ["init"]
+    args: ["Main.main()"]
