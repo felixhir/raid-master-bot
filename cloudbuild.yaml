@@ -1,0 +1,10 @@
+steps:
+  - name: gradle:6.7-jdk8
+    entrypoint: gradle
+    args: ["--version"]
+  - name: gradle:6.7-jdk8
+    entrypoint: gradle
+    args: ["assemble"]
+  - name: gradle:6.7-jdk8
+    entrypoint: gradle
+    args: ["run"]
