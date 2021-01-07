@@ -33,7 +33,8 @@ public class MessageHandler {
     public boolean isCommand(){
         if(message.getContentRaw().substring(0,1).equals(sign)){
             if(raidHandler.getRaidAmount() == 0){
-                channel.sendMessage("Sorry, it seems like there are no raids in my database yet!").queue();
+                channel.sendMessage("Sorry, it seems like there are no raids in my database yet!" +
+                        " Commands will be available once you give me one or more raids.").queue();
                 return false;
             } else {
                 this.handleCommand();

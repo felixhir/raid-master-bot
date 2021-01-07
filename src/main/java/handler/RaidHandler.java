@@ -142,7 +142,7 @@ public class RaidHandler {
             }
         }
         System.out.println("Found " + list.size() + " raid(s)");
-        return list;
+        return list.sort();
     }
 
 
