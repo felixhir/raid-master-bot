@@ -59,8 +59,15 @@ public class RaidList extends LinkedList<Raid> {
                     }
                 }
             }
-            list.add(raids.get(i));
+            list.addRaid(raids.get(i));
         }
         return list;
+    }
+
+    public String toString(){
+        return "Raid 0: " +
+                raids.get(0) +
+                " to " +
+                raids.get(raids.size()-1);
     }
 }

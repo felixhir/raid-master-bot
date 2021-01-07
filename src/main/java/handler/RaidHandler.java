@@ -91,7 +91,7 @@ public class RaidHandler {
                     players = this.determineAllPlayers();
                     activePlayers = this.determineRecentPlayers();
                 }
-                System.out.println("read " + raids.size() + " raids, totalling " + players.size() + " players in " + directoryPath);
+                System.out.println("read " + raids.size() + " raid(s), totalling " + players.size() + " players in " + directoryPath);
             }
         } catch (Exception ignored){ //The file does not exist yet
         }
@@ -167,7 +167,9 @@ public class RaidHandler {
             OutputStreamWriter writer = new OutputStreamWriter(fileStream, StandardCharsets.UTF_8);
             writer.write(csv.substring(4));
             writer.close();
-            raids = parseRaids();
+            raids.addRaid(new Raid(Integer.parseInt(filename.substring(0,1)),Integer.parseInt(filename.substring(1,3)),
+                    Integer.parseInt(filename.substring(3,4))));
+            raids = raids.sort();
             recentRaid = raids.getMostRecentRaid();
             players = this.determineAllPlayers();
             activePlayers = this.determineRecentPlayers();
