@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration status="INFO">
+    <Properties>
+        <Property name="LOG_DIR">logs</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss} %-5level [%t]  - %msg%n"/>
+        </Console>
+        <RollingFile name="RollingFile" append="true"
+        filePattern="${LOG_DIR}/raid-master-%d{dd MMM}.log" >
+            <PatternLayout pattern="%d{MMM dd HH:mm:ss} %highlight{%-5level} [%t] - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="86400"/>
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DirectWriteToRolloverStrategy maxFiles="7"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="Main" level="INFO">
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+
+        <Root level="TRACE">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

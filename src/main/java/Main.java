@@ -11,6 +11,8 @@ import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import objects.Server;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
@@ -29,6 +31,7 @@ public class Main extends ListenerAdapter {
 
     private static GuildHandler guildHandler;
     private static JDA jda;
+    public static final Logger logger = LogManager.getLogger(Main.class);
 
     public static void main(String[] args) throws LoginException, InterruptedException {
         String token = System.getenv(BOT_NAME);
@@ -44,17 +47,22 @@ public class Main extends ListenerAdapter {
             File rootDirectory = new File("./raids");
             if(!rootDirectory.isDirectory()){
                 if(rootDirectory.mkdir()) {
+                    logger.info("root dir created, running setup");
                     setupBot();
                 } else {
-                    System.out.println("Something went HORRIBLY wrong");
+                    logger.error("could not create {}", rootDirectory);
+                    //System.out.println("Something went HORRIBLY wrong");
                     jda.shutdownNow();
-                    System.exit(555);
+                    System.exit(-1);
                 }
             } else {
+                logger.info("root dir accessed, running setup");
                 setupBot();
             }
-        } catch (Exception ignored){ }
-
+        } catch (Exception ignored){
+            logger.error("trouble accessing root dir");
+            System.exit(-1);
+        }
     }
 
 

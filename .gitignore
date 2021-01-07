@@ -1,6 +1,8 @@
 *.jar
+*.log
 
 build/
 .gradle/
 .idea/
 raids/
+log/
