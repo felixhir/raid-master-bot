@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import objects.Server;
 
 import javax.security.auth.login.LoginException;
+import java.io.File;
 
 
 /**
@@ -27,28 +28,33 @@ public class Main extends ListenerAdapter {
     private static final String BOT_NAME = "TESTING_TOKEN";
 
     private static GuildHandler guildHandler;
+    private static JDA jda;
 
     public static void main(String[] args) throws LoginException, InterruptedException {
         String token = System.getenv(BOT_NAME);
         guildHandler = new GuildHandler();
 
-        JDABuilder builder = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(),new Main());
+        JDABuilder builder = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(), new Main());
         builder.setActivity(Activity.listening(CHANNEL_NAME + " or general"));
-        JDA jda = builder.build();
+        jda = builder.build();
 
         jda.awaitReady();
 
-        for(Guild g: jda.getGuilds()){
-            TextChannel textChannel = g.getDefaultChannel();
-            for(TextChannel t: g.getTextChannels()){
-                assert textChannel != null;
-                if(t.getName().equals(CHANNEL_NAME)){
-                    textChannel = t;
+        try {
+            File rootDirectory = new File("./raids");
+            if(!rootDirectory.isDirectory()){
+                if(rootDirectory.mkdir()) {
+                    setupBot();
+                } else {
+                    System.out.println("Something went HORRIBLY wrong");
+                    jda.shutdownNow();
+                    System.exit(555);
                 }
+            } else {
+                setupBot();
             }
-            guildHandler.addServer(new Server(g.getName(), textChannel));
-        }
-        System.out.println("\n- - - - - DONE | BOT RUNNING - - - - -\n");
+        } catch (Exception ignored){ }
+
     }
 
 
@@ -92,4 +98,17 @@ public class Main extends ListenerAdapter {
         guildHandler.removeServer(guild.getName());
     }
 
+    public static void setupBot(){
+        for(Guild g: jda.getGuilds()){
+            TextChannel textChannel = g.getDefaultChannel();
+            for(TextChannel t: g.getTextChannels()){
+                assert textChannel != null;
+                if(t.getName().equals(CHANNEL_NAME)){
+                    textChannel = t;
+                }
+            }
+            guildHandler.addServer(new Server(g.getName(), textChannel));
+        }
+        System.out.println("\n- - - - - DONE | BOT RUNNING - - - - -\n");
+    }
 }
