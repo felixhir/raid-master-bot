@@ -9,6 +9,8 @@ import objects.Player;
 import objects.PlayerList;
 import objects.Raid;
 import objects.RaidList;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +31,7 @@ public class RaidHandler {
     private final String directoryPath;
     final String RAID_PATTERN = "([0-9]{4}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
     final Pattern p = Pattern.compile(RAID_PATTERN);
+    private static final Logger logger = LogManager.getLogger(RaidHandler.class);
 
 
     /**
@@ -43,14 +46,18 @@ public class RaidHandler {
         File[] files;
 
 
-        System.out.println("\ncreating handler for " + guild.getName());
+        logger.info("creating {} for '{}'",
+                RaidHandler.class,
+                guild.getName());
         try {
             file = new File(directoryPath);
             if(!file.isDirectory()) {
-                System.out.println("initial deploy on server " + guild.getName());
+                logger.warn("initial deploy on '{}', trying to create {}",
+                        guild.getName(),
+                        directoryPath);
                 try {
                     if (file.mkdir()) {
-                        System.out.println("new directory created: " + directoryPath);
+                        logger.info("new directory created at {}", directoryPath);
                         for(TextChannel c: guild.getTextChannels()) {
                             for (Message m : c.getIterableHistory()) {
                                 Matcher matcher = p.matcher(m.getContentRaw());
@@ -60,30 +67,35 @@ public class RaidHandler {
                                         files = new File(directoryPath).listFiles();
                                         for (File f : files) {
                                             if (m.getContentRaw().startsWith(f.getName())) {
-                                                System.out.println("duplicate was found - marking it...");
+                                                logger.debug("found a raid for more than one time (msg: {})", m.getId());
                                                 m.addReaction("U+274C").queue();
                                                 return;
                                             }
                                         }
                                     } catch (Exception ignored) {
+                                        logger.warn("failed to access {}", directoryPath);
                                     }
-                                    System.out.println("message " + m.getId() + " identified as raid, proceeding...");
+                                    logger.info("message '{}' ({}) is a raid, proceeding with creation",
+                                            m.getContentRaw().substring(0,4),
+                                            m.getId());
                                     m.addReaction("U+2705").queue();
                                     this.createRaid(m.getContentRaw());
                                 }
                             }
                         }
                         if(raids.isEmpty()) {
-                            System.out.println("no raids found in the history of '" + guild.getName() + "'");
+                            logger.info("there are no recorded raids for '{}' yet", guild.getName());
                         }
                     } else {
-                        System.out.println("there was a problem setting up " + directoryPath);
+                        logger.error("failed to create {}", directoryPath);
                     }
                 } catch (Exception exception) {
-                    System.out.println(Arrays.toString(exception.getStackTrace()));
+                    logger.error("trouble accessing root dir");
                 }
             } else {
-                System.out.println("evaluating files of existing directory...");
+                logger.info("{} exists. evaluating {} files",
+                        directoryPath,
+                        file.listFiles().length);
 
                 raids = this.parseRaids();
                 if(!raids.getList().isEmpty()) {
@@ -91,9 +103,13 @@ public class RaidHandler {
                     players = this.determineAllPlayers();
                     activePlayers = this.determineRecentPlayers();
                 }
-                System.out.println("read " + raids.size() + " raid(s), totalling " + players.size() + " players in " + directoryPath);
+                logger.info("read {} raid(s), totalling {} different players in {}",
+                        raids.size(),
+                        players.size(),
+                        directoryPath);
             }
         } catch (Exception ignored){ //The file does not exist yet
+            logger.fatal("{} is missing and could not be created", directoryPath);
         }
     }
 
@@ -141,7 +157,7 @@ public class RaidHandler {
                 e.printStackTrace();
             }
         }
-        System.out.println("Found " + list.size() + " raid(s)");
+        logger.debug("found {} raid(s)", list.size());
         return list.sort();
     }
 

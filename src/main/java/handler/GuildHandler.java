@@ -2,6 +2,8 @@ package handler;
 
 import objects.Server;
 import objects.ServerList;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -9,9 +11,11 @@ import java.util.LinkedList;
 public class GuildHandler {
 
     private static ServerList servers;
+    public static final Logger logger = LogManager.getLogger(GuildHandler.class.getName());
 
     public GuildHandler(){
         servers = new ServerList();
+        logger.info("{} has been instantiated", GuildHandler.class);
     }
 
     public void addServer(Server server){
@@ -35,6 +39,7 @@ public class GuildHandler {
         servers.toList().remove(server);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean deleteDirectory(File directoryToBeDeleted) {
         File[] allContents = directoryToBeDeleted.listFiles();
         if (allContents != null) {

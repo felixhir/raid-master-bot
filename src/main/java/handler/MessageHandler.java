@@ -5,6 +5,8 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import objects.Player;
 import objects.Raid;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -19,6 +21,7 @@ public class MessageHandler {
     private static String sign;
     private final RaidHandler raidHandler;
     private final String directoryPath;
+    public static final Logger logger = LogManager.getLogger(MessageHandler.class);
 
     public MessageHandler(Message m, String s, RaidHandler h, String directoryPath) {
         message = m;
@@ -27,6 +30,10 @@ public class MessageHandler {
         sign = s;
         raidHandler = h;
         this.directoryPath = directoryPath;
+        logger.info("message '{}' ({}) handler created by '{}'",
+                m.getContentRaw().substring(0, Math.min(m.getContentRaw().length(), 5)),
+                m.getId(),
+                m.getGuild().getName());
     }
 
 
@@ -63,14 +70,17 @@ public class MessageHandler {
             assert files != null;
             for (File f: files){
                 if((message.getContentRaw().substring(0,4)+".txt").equals((f.getName()))){
-                    System.out.println("raid already exists...");
                     message.addReaction("U+274C").queue();
-                    System.out.println("raid marked\n-----------------");
+                    logger.info("{} already exists as a raid, message ({}) will be marked",
+                            message.getContentRaw().substring(0,4),
+                            message.getId());
                     return false;
                 }
             }
 
-            System.out.println("raid is new, passing to handler...");
+            logger.info("identified '{}' (id: {}) as new raid",
+                    message.getContentRaw().substring(0, Math.min(message.getContentRaw().length(), 5)),
+                    message.getId());
             raidHandler.createRaid(message.getContentRaw());
             message.addReaction("U+2705").queue();
             return true;
@@ -80,6 +90,9 @@ public class MessageHandler {
     }
 
     public void handleCommand(){
+        logger.debug("handling the message {} (id: {}) as command",
+                message.getContentRaw().substring(1),
+                message.getId());
         switch (message.getContentRaw().substring(1)){
             case "stats":
                 if(raidHandler.getPlayers().containsName(author.getNickname())) {
