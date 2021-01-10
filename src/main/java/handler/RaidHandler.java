@@ -80,6 +80,7 @@ public class RaidHandler {
                                             m.getId());
                                     m.addReaction("U+2705").queue();
                                     this.createRaid(m.getContentRaw());
+                                    logger.debug("created new raid from message");
                                 }
                             }
                         }
