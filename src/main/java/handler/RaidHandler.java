@@ -91,7 +91,7 @@ public class RaidHandler {
                         logger.error("failed to create {}", directoryPath);
                     }
                 } catch (Exception exception) {
-                    logger.error("trouble accessing root dir");
+                    logger.error("trouble when creating a raid: {}", exception);
                 }
             } else {
                 logger.info("{} exists. evaluating {} files",
