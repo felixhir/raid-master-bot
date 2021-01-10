@@ -80,6 +80,7 @@ public class RaidHandler {
                                             m.getId());
                                     m.addReaction("U+2705").queue();
                                     this.createRaid(m.getContentRaw());
+                                    logger.debug("created new raid from message");
                                 }
                             }
                         }
@@ -189,8 +190,8 @@ public class RaidHandler {
             recentRaid = raids.getMostRecentRaid();
             players = this.determineAllPlayers();
             activePlayers = this.determineRecentPlayers();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException exception) {
+            logger.error("could not created raid {} in {}", filename, directoryPath);
         }
     }
 
