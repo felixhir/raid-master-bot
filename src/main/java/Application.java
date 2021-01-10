@@ -29,7 +29,7 @@ public class Application extends ListenerAdapter {
     private static final String CHANNEL_NAME = "raid-master";
     private static final String COMMAND_SIGN = "!";
     private static final String BOT_TOKEN = "RAID_MASTER_TOKEN";
-    private static final String BOT_NAME = "personalTesting";
+    private static final String BOT_NAME = "Raid Master";
 
     private static GuildHandler guildHandler;
     private static JDA jda;
@@ -64,8 +64,8 @@ public class Application extends ListenerAdapter {
                 logger.info("{} accessed, running setup", rootDirectory);
                 setupBot();
             }
-        } catch (Exception ignored){
-            logger.fatal("could not access root directory or create it, shutting down");
+        } catch (Exception exception){
+            logger.fatal("could not access root directory or create it, shutting down. Trace: {}", (Object) exception.getStackTrace());
             System.exit(-1);
         }
     }
@@ -81,6 +81,8 @@ public class Application extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event){
         Message message = event.getMessage();
+
+        if(message.getContentRaw().equals("")) return;
 
         if(!message.getAuthor().getName().equals(BOT_NAME)){
             logger.info("new message '{}' ({}) received from '{}' on '{}'",

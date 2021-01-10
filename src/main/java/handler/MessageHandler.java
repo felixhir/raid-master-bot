@@ -90,7 +90,7 @@ public class MessageHandler {
     }
 
     public void handleCommand(){
-        logger.debug("handling the message {} (id: {}) as command",
+        logger.debug("handling the message '{}' (id: {}) as command",
                 message.getContentRaw().substring(1),
                 message.getId());
         switch (message.getContentRaw().substring(1)){

@@ -14,7 +14,7 @@ application {
 }
 
 group 'org.example'
-version '0.1-ALPHA'
+version '1.0'
 
 repositories {
     mavenCentral()

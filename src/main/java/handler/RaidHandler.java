@@ -41,6 +41,7 @@ public class RaidHandler {
     public RaidHandler(Guild guild, String directoryPath){
 
         this.directoryPath = directoryPath;
+        this.raids = new RaidList();
         File file;
         File[] files;
 
@@ -90,7 +91,9 @@ public class RaidHandler {
                         logger.error("failed to create {}", directoryPath);
                     }
                 } catch (Exception exception) {
-                    logger.error("trouble when creating a raid: {} ({})", exception.toString(), exception.getStackTrace());
+                    logger.error("trouble when creating a raid: {} ({})",
+                            exception.toString(),
+                            exception.getStackTrace());
                 }
             } else {
                 logger.info("{} exists. evaluating {} files",
@@ -108,8 +111,11 @@ public class RaidHandler {
                         players.size(),
                         directoryPath);
             }
-        } catch (Exception ignored){ //The file does not exist yet
-            logger.fatal("{} is missing and could not be created", directoryPath);
+        } catch (Exception exception){ //The file does not exist yet
+            logger.fatal("{} is missing and could not be created {}: {}",
+                    directoryPath,
+                    exception.toString(),
+                    exception.getStackTrace());
         }
     }
 
@@ -154,7 +160,9 @@ public class RaidHandler {
                 }
                 list.addRaid(raid);
             } catch (IOException | CsvValidationException e) {
-                e.printStackTrace();
+                logger.error("error {} when parsing raids: {}",
+                        e.getMessage(),
+                        e.getStackTrace());
             }
         }
         logger.debug("found {} raid(s)", list.size());
@@ -190,7 +198,11 @@ public class RaidHandler {
             players = this.determineAllPlayers();
             activePlayers = this.determineRecentPlayers();
         } catch (IOException exception) {
-            logger.error("could not created raid {} in {}", filename, directoryPath);
+            logger.error("could not created raid {} in {} because of {}: {}",
+                    filename,
+                    directoryPath,
+                    exception.getMessage(),
+                    exception.getStackTrace());
         }
     }
 
