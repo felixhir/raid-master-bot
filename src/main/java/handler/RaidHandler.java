@@ -191,12 +191,12 @@ public class RaidHandler {
             OutputStreamWriter writer = new OutputStreamWriter(fileStream, StandardCharsets.UTF_8);
             writer.write(csv.substring(4));
             writer.close();
-            raids.addRaid(new Raid(Integer.parseInt(filename.substring(0,1)),Integer.parseInt(filename.substring(1,3)),
+            this.raids.addRaid(new Raid(Integer.parseInt(filename.substring(0,1)),Integer.parseInt(filename.substring(1,3)),
                     Integer.parseInt(filename.substring(3,4))));
-            raids = raids.sort();
-            recentRaid = raids.getMostRecentRaid();
-            players = this.determineAllPlayers();
-            activePlayers = this.determineRecentPlayers();
+            this.raids = raids.sort();
+            this.recentRaid = raids.getMostRecentRaid();
+            this.players = this.determineAllPlayers();
+            this.activePlayers = this.determineRecentPlayers();
         } catch (IOException exception) {
             logger.error("could not created raid {} in {} because of {}: {}",
                     filename,
