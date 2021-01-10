@@ -46,7 +46,7 @@ public class RaidHandler {
 
 
         logger.info("creating {} for '{}'",
-                RaidHandler.class,
+                RaidHandler.class.getName(),
                 guild.getName());
         try {
             file = new File(directoryPath);
