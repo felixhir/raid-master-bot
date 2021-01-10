@@ -16,7 +16,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,7 +90,7 @@ public class RaidHandler {
                         logger.error("failed to create {}", directoryPath);
                     }
                 } catch (Exception exception) {
-                    logger.error("trouble when creating a raid: {}", exception);
+                    logger.error("trouble when creating a raid: {}", exception.toString());
                 }
             } else {
                 logger.info("{} exists. evaluating {} files",

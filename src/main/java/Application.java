@@ -153,7 +153,7 @@ public class Application extends ListenerAdapter {
         if(guildHandler.getServers().isEmpty()) {
             logger.warn("the bot is not connected to any application despite the API running");
         } else {
-            logger.info("the bot is connected to {} servers", guildHandler.getServers().size());
+            logger.info("the bot is connected to {} server(s)", guildHandler.getServers().size());
         }
     }
 }
