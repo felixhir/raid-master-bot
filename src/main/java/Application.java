@@ -21,7 +21,7 @@ import java.util.Objects;
 
 /**
  * @author felixhir
- * @version 0.1
+ * @version 1.0 (PRE-RELEASE)
  */
 public class Application extends ListenerAdapter {
 
