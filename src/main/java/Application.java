@@ -42,8 +42,8 @@ public class Application extends ListenerAdapter {
     public static void main(String[] args) throws LoginException, InterruptedException, SQLException {
         logger.debug("starting {}", Application.class);
         String token = System.getenv(BOT_TOKEN);
-        databaseHandler = new DatabaseHandler(System.getenv(DB_USER));
 
+        databaseHandler = new DatabaseHandler(System.getenv(DB_USER));
         guildHandler = new GuildHandler();
 
         JDABuilder builder = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(), new Application());
@@ -53,6 +53,8 @@ public class Application extends ListenerAdapter {
         logger.debug("initialization of variables in {} finished", Application.class);
 
         jda.awaitReady();
+
+        //setupBot();
 
         try {
             File rootDirectory = new File("./raids");
@@ -155,6 +157,7 @@ public class Application extends ListenerAdapter {
                 }
             }
             guildHandler.addServer(new Server(g.getName(), textChannel));
+            System.out.println(g.getName());
         }
         if(guildHandler.getServers().isEmpty()) {
             logger.warn("the bot is not connected to any application despite the API running");

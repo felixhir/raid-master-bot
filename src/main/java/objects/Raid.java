@@ -38,6 +38,10 @@ public class Raid {
         return this.players;
     }
 
+    public String getName(){
+        return String.valueOf(getStage() + getTier() + getTries());
+    }
+
     //returns the more recent raid of 2 raids
     public Raid moreRecent(Raid r){
         Raid raid = this;

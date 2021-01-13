@@ -1,12 +1,13 @@
 package handler;
 
+import objects.Player;
+import objects.Raid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
+@SuppressWarnings("SqlNoDataSourceInspection")
 public class DatabaseHandler extends Thread {
 
     private final String databaseUser;
@@ -17,7 +18,7 @@ public class DatabaseHandler extends Thread {
     public Connection connection;
 
 
-    public DatabaseHandler(String databaseUser) {
+    public DatabaseHandler(String databaseUser) throws SQLException {
         this.databaseUser = databaseUser;
         timer = 1000;
         logger.warn("connecting to database with user '{}'@'localhost'", databaseUser);
@@ -28,6 +29,7 @@ public class DatabaseHandler extends Thread {
             logger.error("failed to connect to database after {} seconds", timer);
             this.start();
         }
+        connection.createStatement().execute("USE test");
     }
 
 
@@ -58,4 +60,30 @@ public class DatabaseHandler extends Thread {
             }
         }
     };
+
+    public boolean addPlayer(Player player) {
+        String statementString = "INSERT INTO players (id, name, totaldamage, totalattacks) VALUES ('" +
+        player.getId() + "', '" + player.getName() + "', " + player.getDamage() + ", " + player.getAttacks() + ");";
+
+        return executeStatement(statementString);
+    }
+
+    public boolean addRaid(Raid raid) {
+        String statementString = "INSERT INTO raids (name, stage, tier, tries) VALUES('" +
+                raid.getName() + "', " + raid.getStage() + ", " + raid.getTier() + ", " + raid.getTries() + ");";
+
+        return executeStatement(statementString);
+    }
+
+    private boolean executeStatement(String sqlString){
+        try {
+            Statement statement = connection.createStatement();
+            statement.execute(sqlString);
+            logger.info("successfully executed '{}'", sqlString);
+            return true;
+        } catch (SQLException exception) {
+            logger.error("trouble executing '{}'; fault: {}: {}", sqlString, exception.getMessage(), exception.getStackTrace());
+            return false;
+        }
+    }
 }
