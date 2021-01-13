@@ -1,3 +1,4 @@
+import handler.DatabaseHandler;
 import handler.GuildHandler;
 import handler.MessageHandler;
 import net.dv8tion.jda.api.JDA;
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
+import java.sql.SQLException;
 import java.util.Objects;
 
 
@@ -28,16 +30,20 @@ public class Application extends ListenerAdapter {
 
     private static final String CHANNEL_NAME = "raid-master";
     private static final String COMMAND_SIGN = "!";
-    private static final String BOT_TOKEN = "RAID_MASTER_TOKEN";
-    private static final String BOT_NAME = "Raid Master";
+    private static final String BOT_TOKEN = "TESTING_TOKEN";
+    private static final String BOT_NAME = "personalTesting";
+    private static final String DB_USER = "DB_USER";
 
     private static GuildHandler guildHandler;
     private static JDA jda;
+    private static DatabaseHandler databaseHandler;
     public static final Logger logger = LogManager.getLogger(Application.class);
 
-    public static void main(String[] args) throws LoginException, InterruptedException {
+    public static void main(String[] args) throws LoginException, InterruptedException, SQLException {
         logger.debug("starting {}", Application.class);
         String token = System.getenv(BOT_TOKEN);
+        databaseHandler = new DatabaseHandler(System.getenv(DB_USER));
+
         guildHandler = new GuildHandler();
 
         JDABuilder builder = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(), new Application());
@@ -58,7 +64,6 @@ public class Application extends ListenerAdapter {
                     logger.fatal("could not create {}", rootDirectory);
                     //System.out.println("Something went HORRIBLY wrong");
                     jda.shutdownNow();
-                    System.exit(-1);
                 }
             } else {
                 logger.info("{} accessed, running setup", rootDirectory);
@@ -66,7 +71,6 @@ public class Application extends ListenerAdapter {
             }
         } catch (Exception exception){
             logger.fatal("could not access root directory or create it, shutting down. Trace: {}", (Object) exception.getStackTrace());
-            System.exit(-1);
         }
     }
 
