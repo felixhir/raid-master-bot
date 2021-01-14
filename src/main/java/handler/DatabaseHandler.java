@@ -10,26 +10,27 @@ import java.sql.*;
 @SuppressWarnings("SqlNoDataSourceInspection")
 public class DatabaseHandler extends Thread {
 
-    private final String databaseUser;
+    private final String DATABASE_USER;
 
     public static final Logger logger = LogManager.getLogger(DatabaseHandler.class);
 
     public int timer;
-    public Connection connection;
+    public static Connection connection;
 
 
-    public DatabaseHandler(String databaseUser) throws SQLException {
-        this.databaseUser = databaseUser;
+    public DatabaseHandler() throws SQLException {
+        String DATABASE_NAME = System.getenv("DB_NAME");
+        this.DATABASE_USER = System.getenv("DB_USER");
         timer = 1000;
-        logger.warn("connecting to database with user '{}'@'localhost'", databaseUser);
+        logger.warn("connecting to database with user '{}'@'localhost'", DATABASE_USER);
         try {
-            connection = DriverManager.getConnection("jdbc:mariadb://localhost/", "felix", null);
+            connection = DriverManager.getConnection("jdbc:mariadb://localhost/", DATABASE_USER, null);
             logger.info("successfully established a connection");
         } catch (SQLException exception) {
             logger.error("failed to connect to database after {} seconds", timer);
             this.start();
         }
-        connection.createStatement().execute("USE test");
+        connection.createStatement().execute("USE " + DATABASE_NAME);
     }
 
 
@@ -42,7 +43,7 @@ public class DatabaseHandler extends Thread {
 
             while (true) {
                 try {
-                    connection = DriverManager.getConnection("jdbc:mariadb://localhost/", databaseUser, null);
+                    connection = DriverManager.getConnection("jdbc:mariadb://localhost/", DATABASE_USER, null);
                     return;
                 } catch (SQLException minorException) {
                     logger.error("failed to connect to database, reason is '{}': {}",
@@ -61,21 +62,30 @@ public class DatabaseHandler extends Thread {
         }
     };
 
-    public boolean addPlayer(Player player) {
+    public static boolean add(Player player) {
         String statementString = "INSERT INTO players (id, name, totaldamage, totalattacks) VALUES ('" +
         player.getId() + "', '" + player.getName() + "', " + player.getDamage() + ", " + player.getAttacks() + ");";
 
         return executeStatement(statementString);
     }
 
-    public boolean addRaid(Raid raid) {
-        String statementString = "INSERT INTO raids (name, stage, tier, tries) VALUES('" +
-                raid.getName() + "', " + raid.getStage() + ", " + raid.getTier() + ", " + raid.getTries() + ");";
-
-        return executeStatement(statementString);
+    public static boolean add(Raid raid) {
+        try {
+            if (!containsRaid(raid)) {
+                String statementString = "INSERT INTO raids (date, tier, stage, attempt, raid_name, clan_name) VALUES('" +
+                        raid.getDate() + "', " + raid.getTier() + ", " + raid.getStage() + ", " + raid.getTries() + ", '" +
+                        raid.getRaidName() + "', '" + raid.getClanName() + "');";
+                return executeStatement(statementString);
+            }
+            logger.info("raid: '{}' already exists in db, nothing was added", raid.getRaidName());
+            return false;
+        } catch (SQLException exception){
+            logger.error("could not check for raid: '{}' in database, nothing was added", raid.getRaidName());
+            return false;
+        }
     }
 
-    private boolean executeStatement(String sqlString){
+    private static boolean executeStatement(String sqlString){
         try {
             Statement statement = connection.createStatement();
             statement.execute(sqlString);
@@ -85,5 +95,25 @@ public class DatabaseHandler extends Thread {
             logger.error("trouble executing '{}'; fault: {}: {}", sqlString, exception.getMessage(), exception.getStackTrace());
             return false;
         }
+    }
+
+    public static boolean containsRaid(Raid raid) throws SQLException {
+        ResultSet resultSet = connection.createStatement().executeQuery("SELECT * FROM raids");
+        while(resultSet.next()){
+            if(resultSet.getString("raid_name").equals(raid.getRaidName())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsServer(String name) throws SQLException {
+        ResultSet resultSet = connection.createStatement().executeQuery("SELECT clan_name FROM raids");
+        while(resultSet.next()){
+            if(resultSet.getString("clan_name").equals(name)){
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -1,7 +1,5 @@
 package handler;
 
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvValidationException;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -12,10 +10,9 @@ import objects.RaidList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.sql.Date;
+import java.sql.SQLException;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,8 +24,8 @@ public class RaidHandler {
     private PlayerList activePlayers;
     private RaidList raids;
     private Raid recentRaid;
-    private final String directoryPath;
-    final String RAID_PATTERN = "([0-9]{4}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
+    private final String serverName;
+    final String RAID_PATTERN = "([0-9]_[0-9]{1,2}_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
     final Pattern p = Pattern.compile(RAID_PATTERN);
     private static final Logger logger = LogManager.getLogger(RaidHandler.class);
 
@@ -38,84 +35,43 @@ public class RaidHandler {
      *
      * @param guild the guild this handler is responsible for
      */
-    public RaidHandler(Guild guild, String directoryPath){
-
-        this.directoryPath = directoryPath;
+    public RaidHandler(Guild guild, String serverName) throws SQLException {
+        this.serverName = serverName;
         this.raids = new RaidList();
-        File file;
-        File[] files;
-
-
         logger.info("creating {} for '{}'",
                 RaidHandler.class.getName(),
                 guild.getName());
-        try {
-            file = new File(directoryPath);
-            if(!file.isDirectory()) {
-                logger.warn("initial deploy on '{}', trying to create {}",
-                        guild.getName(),
-                        directoryPath);
-                try {
-                    if (file.mkdir()) {
-                        logger.info("new directory created at {}", directoryPath);
-                        for(TextChannel c: guild.getTextChannels()) {
-                            for (Message m : c.getIterableHistory()) {
-                                Matcher matcher = p.matcher(m.getContentRaw());
 
-                                if (matcher.find()) {
-                                    try {
-                                        files = new File(directoryPath).listFiles();
-                                        for (File f : files) {
-                                            if (m.getContentRaw().startsWith(f.getName())) {
-                                                logger.debug("found a raid for more than one time (msg: {})", m.getId());
-                                                m.addReaction("U+274C").queue();
-                                                return;
-                                            }
-                                        }
-                                    } catch (Exception ignored) {
-                                        logger.warn("failed to access {}", directoryPath);
-                                    }
-                                    logger.info("message '{}' ({}) is a raid, proceeding with creation",
-                                            m.getContentRaw().substring(0,4),
-                                            m.getId());
-                                    m.addReaction("U+2705").queue();
-                                    this.createRaid(m.getContentRaw());
-                                    logger.debug("created new raid from message");
-                                }
-                            }
+        if(DatabaseHandler.containsServer(guild.getName().toLowerCase(Locale.ROOT).replace(" ", "_"))) {
+            logger.info("'{}' already exists in database, skipping initialization", guild.getName());
+            //here goes reading from db :)
+
+        } else {
+            logger.warn("initial deploy on '{}', running through messages", guild.getName());
+            for(TextChannel c: guild.getTextChannels()){
+                for(Message m: c.getIterableHistory()){
+                    Matcher matcher = p.matcher(m.getContentRaw());
+                    if(matcher.find()){
+                        String raidDetails = m.getContentRaw().split("\n")[0];
+                        if(DatabaseHandler.add(new Raid(Integer.parseInt(raidDetails.split("_")[0]),
+                                Integer.parseInt(raidDetails.split("_")[1]),
+                                Integer.parseInt(raidDetails.split("_")[2]),
+                                serverName,
+                                new Date(m.getTimeCreated().toInstant().toEpochMilli())))) {
+                            logger.info("message '{}' ({}) is a raid, added it to the db",
+                                    m.getContentRaw().substring(0,5),
+                                    m.getId());
+                            m.addReaction("U+2705").queue();
+                        } else {
+                            logger.debug("found a raid for more than one time (msg: {})", m.getId());
+                            m.addReaction("U+274C").queue();
                         }
-                        if(raids.isEmpty()) {
-                            logger.info("there are no recorded raids for '{}' yet", guild.getName());
-                        }
-                    } else {
-                        logger.error("failed to create {}", directoryPath);
                     }
-                } catch (Exception exception) {
-                    logger.error("trouble when creating a raid: {} ({})",
-                            exception.toString(),
-                            exception.getStackTrace());
                 }
-            } else {
-                logger.info("{} exists. evaluating {} files",
-                        directoryPath,
-                        file.listFiles().length);
-
-                raids = this.parseRaids();
-                if(!raids.getList().isEmpty()) {
-                    recentRaid = raids.getMostRecentRaid();
-                    players = this.determineAllPlayers();
-                    activePlayers = this.determineRecentPlayers();
-                }
-                logger.info("read {} raid(s), totalling {} different players in {}",
-                        raids.size(),
-                        players.size(),
-                        directoryPath);
             }
-        } catch (Exception exception){ //The file does not exist yet
-            logger.fatal("{} is missing and could not be created {}: {}",
-                    directoryPath,
-                    exception.toString(),
-                    exception.getStackTrace());
+            if(raids.isEmpty()) {
+                logger.info("there are no recorded raids for '{}' yet", guild.getName());
+            }
         }
     }
 
@@ -143,28 +99,8 @@ public class RaidHandler {
      * @return list of raids
      */
     private RaidList parseRaids(){
-        File[] files = new File(directoryPath).listFiles();
         RaidList list = new RaidList();
 
-        for(File file: files){
-            try(BufferedReader br = Files.newBufferedReader(Paths.get(String.valueOf(file)))) {
-                CSVReader csvReader = new CSVReader(br);
-                Raid raid = new Raid(Integer.parseInt(file.getName().substring(0,1)),Integer.parseInt(file.getName().substring(1,3)),
-                        Integer.parseInt(file.getName().substring(3,4)));
-
-                String[] record;
-                csvReader.readNext();
-                csvReader.readNext();
-                while ((record = csvReader.readNext()) != null){
-                    raid.addPlayer(createPlayer(record, raid));
-                }
-                list.addRaid(raid);
-            } catch (IOException | CsvValidationException e) {
-                logger.error("error {} when parsing raids: {}",
-                        e.getMessage(),
-                        e.getStackTrace());
-            }
-        }
         logger.debug("found {} raid(s)", list.size());
         return list.sort();
     }
@@ -182,48 +118,25 @@ public class RaidHandler {
 
     /**
      * saves a String as content of a Raids csv
-     * @param csv the message received in Discord
+     * @param message the message received in Discord
      */
-    public void createRaid(String csv){
-        String filename = csv.substring(0,4);
-        try{
-            FileOutputStream fileStream = new FileOutputStream(directoryPath+filename+".txt");
-            OutputStreamWriter writer = new OutputStreamWriter(fileStream, StandardCharsets.UTF_8);
-            writer.write(csv.substring(4));
-            writer.close();
-            this.raids.addRaid(new Raid(Integer.parseInt(filename.substring(0,1)),Integer.parseInt(filename.substring(1,3)),
-                    Integer.parseInt(filename.substring(3,4))));
-            this.raids = raids.sort();
-            this.recentRaid = raids.getMostRecentRaid();
-            this.players = this.determineAllPlayers();
-            this.activePlayers = this.determineRecentPlayers();
-        } catch (IOException exception) {
-            logger.error("could not created raid {} in {} because of {}: {}",
-                    filename,
-                    directoryPath,
-                    exception.getMessage(),
-                    exception.getStackTrace());
-        }
-    }
+    public void createRaid(Message message) {
+        String raidDetails = message.getContentRaw().split("\n")[0];
+        Raid raid = new Raid(Integer.parseInt(raidDetails.split("_")[0]),
+                Integer.parseInt(raidDetails.split("_")[1]),
+                Integer.parseInt(raidDetails.split("_")[2]),
+                serverName,
+                new Date(message.getTimeCreated().toInstant().toEpochMilli()));
+        this.raids.addRaid(raid);
 
-    /**@deprecated with the addition of RaidLists, they have their own implementation of this method
-     * compares all Raids of the LinkedList raids
-     * @return the clans highest, latest raid
-     */
-    @Deprecated
-    private Raid getRecentRaid(){
-        Raid recent = null;
-        try {
-            recent = raids.get(0);
-        } catch (Exception ignored){
-        }
-        for(int i = 0; i < raids.size()-1; i++){
-            recent = raids.get(i).moreRecent(raids.get(i+1));
-        }
-        System.out.println("Most recent raid: " + recent);
-        return recent;
-    }
+        DatabaseHandler.add(raid);
 
+        this.raids = raids.sort();
+        this.recentRaid = raids.getMostRecentRaid();
+        this.players = this.determineAllPlayers();
+        this.activePlayers = this.determineRecentPlayers();
+
+    }
 
     /**
      * gives a list of all players who ever took part in any raid

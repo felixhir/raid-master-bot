@@ -16,7 +16,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.login.LoginException;
-import java.io.File;
 import java.sql.SQLException;
 import java.util.Objects;
 
@@ -32,18 +31,17 @@ public class Application extends ListenerAdapter {
     private static final String COMMAND_SIGN = "!";
     private static final String BOT_TOKEN = "TESTING_TOKEN";
     private static final String BOT_NAME = "personalTesting";
-    private static final String DB_USER = "DB_USER";
 
     private static GuildHandler guildHandler;
     private static JDA jda;
-    private static DatabaseHandler databaseHandler;
     public static final Logger logger = LogManager.getLogger(Application.class);
 
     public static void main(String[] args) throws LoginException, InterruptedException, SQLException {
         logger.debug("starting {}", Application.class);
         String token = System.getenv(BOT_TOKEN);
 
-        databaseHandler = new DatabaseHandler(System.getenv(DB_USER));
+        //noinspection unused
+        DatabaseHandler databaseHandler = new DatabaseHandler();
         guildHandler = new GuildHandler();
 
         JDABuilder builder = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(), new Application());
@@ -54,26 +52,8 @@ public class Application extends ListenerAdapter {
 
         jda.awaitReady();
 
-        //setupBot();
+        setupBot();
 
-        try {
-            File rootDirectory = new File("./raids");
-            if(!rootDirectory.isDirectory()){
-                if(rootDirectory.mkdir()) {
-                    logger.info("{}} created, running setup", rootDirectory);
-                    setupBot();
-                } else {
-                    logger.fatal("could not create {}", rootDirectory);
-                    //System.out.println("Something went HORRIBLY wrong");
-                    jda.shutdownNow();
-                }
-            } else {
-                logger.info("{} accessed, running setup", rootDirectory);
-                setupBot();
-            }
-        } catch (Exception exception){
-            logger.fatal("could not access root directory or create it, shutting down. Trace: {}", (Object) exception.getStackTrace());
-        }
     }
 
 
@@ -98,12 +78,15 @@ public class Application extends ListenerAdapter {
                     message.getGuild().getName());
             MessageHandler messageHandler = new MessageHandler(message,
                     COMMAND_SIGN,
-                    guildHandler.getServerByName(message.getGuild().getName()).getRaidHandler(),
-                    guildHandler.getServerByName(message.getGuild().getName()).getDirectoryPath());
-            if(messageHandler.isNewRaid()) {
-                logger.info("handled raid {} from '{}'",
-                        message.getContentRaw().substring(0, Math.min(message.getContentRaw().length(), 5)),
-                        message.getGuild().getName());
+                    guildHandler.getServerByName(message.getGuild().getName()).getRaidHandler());
+            try {
+                if(messageHandler.isNewRaid()) {
+                    logger.info("handled raid {} from '{}'",
+                            message.getContentRaw().substring(0, Math.min(message.getContentRaw().length(), 5)),
+                            message.getGuild().getName());
+                    return;
+                }
+            } catch (SQLException ignored) {
             }
             if(messageHandler.isCommand()) {
                 logger.info("command '{}' ({}) handled", message.getContentRaw(), message.getId());
@@ -129,7 +112,11 @@ public class Application extends ListenerAdapter {
         assert channel != null;
         logger.debug("the channel '{}' will be used as default for {}", channel.getName(), guild.getName());
 
-        guildHandler.addServer(new Server(guild.getName(), channel));
+        try {
+            guildHandler.addServer(new Server(guild.getName(), channel));
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
     }
 
 
@@ -147,7 +134,7 @@ public class Application extends ListenerAdapter {
         }
     }
 
-    public static void setupBot(){
+    public static void setupBot() throws SQLException {
         for(Guild g: jda.getGuilds()){
             TextChannel textChannel = g.getDefaultChannel();
             for(TextChannel t: g.getTextChannels()){
@@ -157,7 +144,6 @@ public class Application extends ListenerAdapter {
                 }
             }
             guildHandler.addServer(new Server(g.getName(), textChannel));
-            System.out.println(g.getName());
         }
         if(guildHandler.getServers().isEmpty()) {
             logger.warn("the bot is not connected to any application despite the API running");

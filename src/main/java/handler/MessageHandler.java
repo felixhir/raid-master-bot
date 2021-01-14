@@ -8,7 +8,8 @@ import objects.Raid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
+import java.sql.Date;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,16 +21,14 @@ public class MessageHandler {
     private final Member author;
     private static String sign;
     private final RaidHandler raidHandler;
-    private final String directoryPath;
     public static final Logger logger = LogManager.getLogger(MessageHandler.class);
 
-    public MessageHandler(Message m, String s, RaidHandler h, String directoryPath) {
+    public MessageHandler(Message m, String s, RaidHandler h) {
         message = m;
         channel = m.getChannel();
         author = m.getMember();
         sign = s;
         raidHandler = h;
-        this.directoryPath = directoryPath;
         logger.info("message '{}' ({}) handler created by '{}'",
                 m.getContentRaw().substring(0, Math.min(m.getContentRaw().length(), 5)),
                 m.getId(),
@@ -53,35 +52,29 @@ public class MessageHandler {
     }
 
 
-    public boolean isNewRaid(){
-        String RAID_PATTERN = "([0-9]{4}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
+    public boolean isNewRaid() throws SQLException {
+        String RAID_PATTERN = "([0-9]_[0-9]{1,2}_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
         Pattern p = Pattern.compile(RAID_PATTERN);
         Matcher m = p.matcher(message.getContentRaw());
 
-        File[] files = null;
-
         if(m.find()){
-
-            try {
-                files = new File(directoryPath).listFiles();
-            } catch (Exception ignored){
-            }
-
-            assert files != null;
-            for (File f: files){
-                if((message.getContentRaw().substring(0,4)+".txt").equals((f.getName()))){
-                    message.addReaction("U+274C").queue();
-                    logger.info("{} already exists as a raid, message ({}) will be marked",
-                            message.getContentRaw().substring(0,4),
-                            message.getId());
-                    return false;
-                }
+            String raidDetails = message.getContentRaw().split("\n")[0];
+            if(DatabaseHandler.containsRaid(new Raid(Integer.parseInt(raidDetails.split("_")[0]),
+                    Integer.parseInt(raidDetails.split("_")[1]),
+                    Integer.parseInt(raidDetails.split("_")[2]),
+                    message.getGuild().getName(),
+                    new Date(message.getTimeCreated().toInstant().toEpochMilli())))) {
+                message.addReaction("U+274C").queue();
+                logger.info("'{}' already exists as a raid, message ({}) will be marked",
+                        message.getContentRaw().substring(0,5),
+                        message.getId());
+                return false;
             }
 
             logger.info("identified '{}' (id: {}) as new raid",
                     message.getContentRaw().substring(0, Math.min(message.getContentRaw().length(), 5)),
                     message.getId());
-            raidHandler.createRaid(message.getContentRaw());
+            raidHandler.createRaid(message);
             message.addReaction("U+2705").queue();
             return true;
         } else {

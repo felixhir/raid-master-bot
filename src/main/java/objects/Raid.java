@@ -1,17 +1,37 @@
 package objects;
 
+import java.sql.Date;
+
 public class Raid {
 
     PlayerList players;
     private final int stage;
     private final int tier;
     private final int tries;
+    private final String raidName;
+    private final String clanName;
+    private final Date date;
 
-    public Raid(int tier, int stage, int tries){
+    public Raid(int tier, int stage, int tries, String clan, Date date){
+        this.date = date;
+        this.clanName = clan;
         players = new PlayerList();
         this.tier = tier;
         this.stage = stage;
         this.tries = tries;
+        this.raidName = tier + String.format(String.valueOf(stage), "%02d") + String.format(String.valueOf(tries), "%02d") + this.clanName.substring(0,5);
+    }
+
+    public String getRaidName() {
+        return raidName;
+    }
+
+    public String getClanName() {
+        return clanName;
+    }
+
+    public Date getDate() {
+        return date;
     }
 
     public void addPlayer(Player player){
@@ -42,26 +62,4 @@ public class Raid {
         return String.valueOf(getStage() + getTier() + getTries());
     }
 
-    //returns the more recent raid of 2 raids
-    public Raid moreRecent(Raid r){
-        Raid raid = this;
-        if (this.getTier() > r.getTier()){
-            raid = this;
-        } else if(this.getTier() == r.getTier()){
-            if (this.getStage() > r.getStage()){
-                raid = this;
-            } else if(this.getStage() == r.getStage()){
-                if(this.getTries() > r.getTries()){
-                    raid = this;
-                } else {
-                    raid = r;
-                }
-            } else {
-                raid = r;
-            }
-        } else {
-            raid = r;
-        }
-        return raid;
-    }
 }

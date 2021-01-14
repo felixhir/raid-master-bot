@@ -4,6 +4,7 @@ import handler.RaidHandler;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 
+import java.sql.SQLException;
 import java.util.Locale;
 
 @SuppressWarnings("FieldMayBeFinal")
@@ -11,22 +12,15 @@ public class Server {
     private final String name;
     private RaidHandler raidHandler;
     private final TextChannel channel;
-    public final String directoryPath;
 
-    public Server(String n, TextChannel c){
-        this.name = n;
+    public Server(String n, TextChannel c) throws SQLException {
+        this.name = n.toLowerCase(Locale.ROOT).replace(" ", "_");
         this.channel = c;
-        String directoryName = n.toLowerCase(Locale.ROOT).replace(" ", "_");
-        this.directoryPath = "./raids/"+ directoryName + "/";
         this.raidHandler = instantiateRaidHandler();
     }
 
     public String getName(){
         return this.name;
-    }
-
-    public void setRaidHandler(RaidHandler handler){
-        this.raidHandler = handler;
     }
 
     public void sendMessage(Message message){
@@ -41,11 +35,7 @@ public class Server {
         return this.raidHandler;
     }
 
-    public String getDirectoryPath(){
-        return directoryPath;
-    }
-
-    private RaidHandler instantiateRaidHandler(){
-        return new RaidHandler(channel.getGuild(), directoryPath);
+    private RaidHandler instantiateRaidHandler() throws SQLException {
+        return new RaidHandler(channel.getGuild(), this.name );
     }
 }
