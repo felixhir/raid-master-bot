@@ -22,7 +22,7 @@ public class RaidHandler {
     private RaidList raids;
     private Raid recentRaid;
     private final Server server;
-    final String RAID_PATTERN = "([0-9]\\?_[0-9]{1,2}\\?_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
+    final String RAID_PATTERN = "([1-3]\\?_[0-9]{1,2}\\?_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
     final Pattern p = Pattern.compile(RAID_PATTERN);
     private static final Logger logger = LogManager.getLogger(RaidHandler.class);
 
