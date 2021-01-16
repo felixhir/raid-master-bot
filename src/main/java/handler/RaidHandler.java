@@ -93,6 +93,7 @@ public class RaidHandler {
             logger.info("parsed {} raids for Server '{}'",
                     raids.size(),
                     guild.getName());
+            players = DatabaseHandler.getPlayers(guild);
         }
     }
 
@@ -155,12 +156,12 @@ public class RaidHandler {
         PlayerList list = new PlayerList();
         for(Raid r: raids.getList()){
             for(Player p: r.getPlayers().getList()){
-                if(list.containsId(p.getId())){
+                if(list.containsPlayerById(p.getId())){
                     Player updatePlayer = list.getPlayerById(p.getId());
                     list.remove(updatePlayer);
                     list.add(updatePlayer(updatePlayer, p, r));
                 } else {
-                    list.addPlayer(p);
+                    list.add(p);
                 }
             }
         }
@@ -184,8 +185,8 @@ public class RaidHandler {
     private PlayerList determineRecentPlayers(){
         PlayerList list = new PlayerList();
         for(Player p: players.getList()){
-            if(recentRaid.getPlayers().containsId(p.getId())){
-                list.addPlayer(p);
+            if(recentRaid.getPlayers().containsPlayerById(p.getId())){
+                list.add(p);
             }
         }
         return list;

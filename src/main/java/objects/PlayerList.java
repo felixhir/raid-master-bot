@@ -12,7 +12,7 @@ public class PlayerList extends LinkedList<Player> {
         players = new LinkedList<>();
     }
 
-    public boolean containsId(String id){
+    public boolean containsPlayerById(String id){
         for (Player player : players) {
             if (player.getId().equals(id)) {
                 return true;
@@ -23,15 +23,24 @@ public class PlayerList extends LinkedList<Player> {
 
     public boolean containsName(String name){
         for (Player player : players) {
-            if (player.getName().equals(name)) {
+            if (player.getNameAsString().equals(name)) {
                 return true;
             }
         }
         return false;
     }
 
-    public void addPlayer(Player player){
-        players.add(player);
+    @Override
+    public boolean add(Player player){
+        if(this.containsPlayerById(player)) {
+            Player editPlayer = getPlayerById(player.getId());
+            editPlayer.addAttacks(player.getAttacks());
+            editPlayer.setName(player.getNameAsString());
+            editPlayer.addDamage(player.getDamage());
+            return true;
+        } else {
+            return players.add(player);
+        }
     }
 
     public Player getPlayerById(String id){
@@ -45,13 +54,14 @@ public class PlayerList extends LinkedList<Player> {
 
     public Player getPlayerByName(String name){
         for(Player p: players){
-            if(p.getName().equals(name)){
+            if(p.getNameAsString().equals(name)){
                 return p;
             }
         }
         return null;
     }
 
+    @Override
     public Player get(int index){
         return players.get(index);
     }
@@ -84,7 +94,7 @@ public class PlayerList extends LinkedList<Player> {
     public @NotNull PlayerList subList(int start, int end){
         PlayerList list = new PlayerList();
         for(int i = start; i < end+1; i++){
-            list.addPlayer(players.get(i));
+            list.add(players.get(i));
         }
         return list;
     }
@@ -103,9 +113,18 @@ public class PlayerList extends LinkedList<Player> {
                 }
             }
             if(!list.getList().contains(p)){
-                list.addPlayer(p);
+                list.add(p);
             }
         }
         return list.subList(0,4);
+    }
+
+    private boolean containsPlayerById(Player player) {
+        for(Player p: players) {
+            if(p.getId().equals(player.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

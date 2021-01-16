@@ -35,7 +35,7 @@ public class Raid {
     }
 
     public void addPlayer(Player player){
-        players.addPlayer(player);
+        players.add(player);
     }
 
     public String toString(){

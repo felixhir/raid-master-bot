@@ -1,9 +1,7 @@
 package handler;
 
-import objects.Player;
-import objects.Raid;
-import objects.RaidList;
-import objects.Server;
+import net.dv8tion.jda.api.entities.Guild;
+import objects.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -159,6 +157,32 @@ public class DatabaseHandler extends Thread {
                     exception.getMessage(),
                     exception.getStackTrace());
             return list;
+        }
+    }
+
+    public static PlayerList getPlayers(Guild guild) {
+        PlayerList list = new PlayerList();
+        try {
+            String sqlString = "SELECT name, damage, id, attacks FROM players AS players INNER JOIN participations AS participations ON " +
+                    "players.id=participations.player_id INNER JOIN raids AS raids ON raids.raid_name = participations.raid_id WHERE raids.clan_name='" +
+                    guild.getName() + "'";
+            ResultSet playerSet = connection.createStatement().executeQuery(sqlString);
+            while(playerSet.next()) {
+                Player player = new Player(playerSet.getString("name"),
+                        playerSet.getString("id"),
+                        playerSet.getInt("attacks"),
+                        playerSet.getInt("damage"));
+                logger.debug("created new PLAYER '{}' ({})",
+                        player.getName(),
+                        player.getId());
+                list.add(player);
+            }
+            return list;
+        } catch (SQLException exception) {
+            logger.error("failed fetching PLAYERS from db <{}> {}",
+                    exception.getMessage(),
+                    exception.getStackTrace());
+            return null;
         }
     }
 
