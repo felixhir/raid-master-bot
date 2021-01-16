@@ -30,7 +30,7 @@ public class Application extends ListenerAdapter {
 
     private static final String CHANNEL_NAME = "raid-master";
     private static final String COMMAND_SIGN = "!";
-    private static final String BOT_TOKEN = "TESTING_TOKEN";
+    private static final String BOT_TOKEN = "RAID_MASTER_TOKEN";
     private static final String BOT_NAME = "personalTesting";
 
     private static GuildHandler guildHandler;
