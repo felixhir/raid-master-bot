@@ -33,6 +33,22 @@ public class MessageHandler {
                 m.getContentRaw().substring(0, Math.min(m.getContentRaw().length(), 5)),
                 m.getId(),
                 m.getGuild().getName());
+        try {
+            if(this.isNewRaid()) {
+                logger.info("handled raid {} from '{}'",
+                        message.getContentRaw().substring(0, Math.min(message.getContentRaw().length(), 5)),
+                        message.getGuild().getName());
+                return;
+            }
+        } catch (SQLException ignored) {
+        }
+        if(this.isCommand()) {
+            logger.info("command '{}' ({}) handled", message.getContentRaw(), message.getId());
+        } else {
+            logger.info("message '{}' ({}) ignored as a text message",
+                    message.getContentRaw().substring(0, Math.min(5, message.getContentRaw().length())),
+                    message.getId());
+        }
     }
 
 
@@ -120,8 +136,7 @@ public class MessageHandler {
                 df.format(p.getAttacks()) +
                 "\nDpA: " +
                 df.format(p.getDpa()) +
-                "\nLatest raid: " +
-                getPublicRaidString(p.getRaids().getMostRecentRaid());
+                "\nLatest raid: " ;
     }
 
     private String getPublicRaidString(Raid r){

@@ -8,7 +8,7 @@ public class Raid {
     private final int stage;
     private final int tier;
     private final int tries;
-    private final String raidName;
+    private final String name;
     private final String clanName;
     private final Date date;
 
@@ -19,11 +19,11 @@ public class Raid {
         this.tier = tier;
         this.stage = stage;
         this.tries = tries;
-        this.raidName = tier + String.format(String.valueOf(stage), "%02d") + String.format(String.valueOf(tries), "%02d") + this.clanName.substring(0,5);
+        this.name = tier + String.format("%02d", stage) + String.format("%02d", tries) + this.clanName.substring(0,5);
     }
 
-    public String getRaidName() {
-        return raidName;
+    public String getName() {
+        return name;
     }
 
     public String getClanName() {
@@ -56,10 +56,6 @@ public class Raid {
 
     public PlayerList getPlayers(){
         return this.players;
-    }
-
-    public String getName(){
-        return String.valueOf(getStage() + getTier() + getTries());
     }
 
 }

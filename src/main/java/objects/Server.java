@@ -1,6 +1,7 @@
 package objects;
 
 import handler.RaidHandler;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 
@@ -10,13 +11,16 @@ import java.util.Locale;
 @SuppressWarnings("FieldMayBeFinal")
 public class Server {
     private final String name;
-    private RaidHandler raidHandler;
     private final TextChannel channel;
+    private final Guild guild;
 
-    public Server(String n, TextChannel c) throws SQLException {
-        this.name = n.toLowerCase(Locale.ROOT).replace(" ", "_");
-        this.channel = c;
+    private RaidHandler raidHandler;
+
+    public Server(TextChannel channel, Guild guild) throws SQLException {
+        this.name = guild.getName().toLowerCase(Locale.ROOT).replace(" ", "_");
+        this.channel = channel;
         this.raidHandler = instantiateRaidHandler();
+        this.guild = guild;
     }
 
     public String getName(){
@@ -36,6 +40,6 @@ public class Server {
     }
 
     private RaidHandler instantiateRaidHandler() throws SQLException {
-        return new RaidHandler(channel.getGuild(), this.name );
+        return new RaidHandler(channel.getGuild(), this );
     }
 }

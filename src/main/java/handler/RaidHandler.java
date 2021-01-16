@@ -3,16 +3,12 @@ package handler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import objects.Player;
-import objects.PlayerList;
-import objects.Raid;
-import objects.RaidList;
+import objects.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.Date;
 import java.sql.SQLException;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,7 +20,7 @@ public class RaidHandler {
     private PlayerList activePlayers;
     private RaidList raids;
     private Raid recentRaid;
-    private final String serverName;
+    private final Server server;
     final String RAID_PATTERN = "([0-9]_[0-9]{1,2}_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
     final Pattern p = Pattern.compile(RAID_PATTERN);
     private static final Logger logger = LogManager.getLogger(RaidHandler.class);
@@ -35,14 +31,14 @@ public class RaidHandler {
      *
      * @param guild the guild this handler is responsible for
      */
-    public RaidHandler(Guild guild, String serverName) throws SQLException {
-        this.serverName = serverName;
+    public RaidHandler(Guild guild, Server server) throws SQLException {
         this.raids = new RaidList();
+        this.server = server;
         logger.info("creating {} for '{}'",
                 RaidHandler.class.getName(),
                 guild.getName());
 
-        if(DatabaseHandler.containsServer(guild.getName().toLowerCase(Locale.ROOT).replace(" ", "_"))) {
+        if(DatabaseHandler.containsServer(this.server)) {
             logger.info("'{}' already exists in database, skipping initialization", guild.getName());
             //here goes reading from db :)
 
@@ -56,7 +52,7 @@ public class RaidHandler {
                         if(DatabaseHandler.add(new Raid(Integer.parseInt(raidDetails.split("_")[0]),
                                 Integer.parseInt(raidDetails.split("_")[1]),
                                 Integer.parseInt(raidDetails.split("_")[2]),
-                                serverName,
+                                server.getName(),
                                 new Date(m.getTimeCreated().toInstant().toEpochMilli())))) {
                             logger.info("message '{}' ({}) is a raid, added it to the db",
                                     m.getContentRaw().substring(0,5),
@@ -95,18 +91,6 @@ public class RaidHandler {
 
 
     /**
-     * creates a raid object for every raid log file
-     * @return list of raids
-     */
-    private RaidList parseRaids(){
-        RaidList list = new RaidList();
-
-        logger.debug("found {} raid(s)", list.size());
-        return list.sort();
-    }
-
-
-    /**
      * Creates a Player object from an array of string values
      * @param record consists of a single line from any Raids csv and includes position, name, id, damage, attacks in that order
      * @return a player object
@@ -125,14 +109,14 @@ public class RaidHandler {
         Raid raid = new Raid(Integer.parseInt(raidDetails.split("_")[0]),
                 Integer.parseInt(raidDetails.split("_")[1]),
                 Integer.parseInt(raidDetails.split("_")[2]),
-                serverName,
+                server.getName(),
                 new Date(message.getTimeCreated().toInstant().toEpochMilli()));
-        this.raids.addRaid(raid);
 
-        DatabaseHandler.add(raid);
+        if(DatabaseHandler.add(raid)){
+            this.raids.addRaid(raid);
+        }
 
         this.raids = raids.sort();
-        this.recentRaid = raids.getMostRecentRaid();
         this.players = this.determineAllPlayers();
         this.activePlayers = this.determineRecentPlayers();
 

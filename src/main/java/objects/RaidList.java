@@ -30,13 +30,6 @@ public class RaidList extends LinkedList<Raid> {
         this.raids.add(index, raid);
     }
 
-    public Raid getMostRecentRaid(){
-        Raid recent = raids.get(0);
-        for(int i = 0; i < raids.size() - 1; i++){
-            recent = recent.moreRecent(raids.get(i+1));
-        }
-        return recent;
-    }
 
     public RaidList sort(){
         RaidList list = new RaidList();

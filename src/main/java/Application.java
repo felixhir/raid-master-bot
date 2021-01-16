@@ -40,8 +40,7 @@ public class Application extends ListenerAdapter {
         logger.debug("starting {}", Application.class);
         String token = System.getenv(BOT_TOKEN);
 
-        //noinspection unused
-        DatabaseHandler databaseHandler = new DatabaseHandler();
+        new DatabaseHandler();
         guildHandler = new GuildHandler();
 
         JDABuilder builder = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(), new Application());
@@ -76,25 +75,9 @@ public class Application extends ListenerAdapter {
                     message.getId(),
                     Objects.requireNonNull(message.getMember()).getNickname(),
                     message.getGuild().getName());
-            MessageHandler messageHandler = new MessageHandler(message,
+            new MessageHandler(message,
                     COMMAND_SIGN,
                     guildHandler.getServerByName(message.getGuild().getName()).getRaidHandler());
-            try {
-                if(messageHandler.isNewRaid()) {
-                    logger.info("handled raid {} from '{}'",
-                            message.getContentRaw().substring(0, Math.min(message.getContentRaw().length(), 5)),
-                            message.getGuild().getName());
-                    return;
-                }
-            } catch (SQLException ignored) {
-            }
-            if(messageHandler.isCommand()) {
-                logger.info("command '{}' ({}) handled", message.getContentRaw(), message.getId());
-            } else {
-                logger.info("message '{}' ({}) ignored as a text message",
-                        message.getContentRaw().substring(0, Math.min(5, message.getContentRaw().length())),
-                        message.getId());
-            }
         }
     }
 
@@ -113,7 +96,7 @@ public class Application extends ListenerAdapter {
         logger.debug("the channel '{}' will be used as default for {}", channel.getName(), guild.getName());
 
         try {
-            guildHandler.addServer(new Server(guild.getName(), channel));
+            guildHandler.addServer(new Server(channel, guild));
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -126,7 +109,6 @@ public class Application extends ListenerAdapter {
 
         Guild guild = event.getGuild();
         int n = guildHandler.getServers().size();
-        guildHandler.removeServer(guild.getName());
         if(n > guildHandler.getServers().size()) {
             logger.debug("removed '{}' from the {} successfully", guild.getName(), guildHandler.getClass());
         } else {
@@ -143,7 +125,7 @@ public class Application extends ListenerAdapter {
                     textChannel = t;
                 }
             }
-            guildHandler.addServer(new Server(g.getName(), textChannel));
+            guildHandler.addServer(new Server(textChannel, g));
         }
         if(guildHandler.getServers().isEmpty()) {
             logger.warn("the bot is not connected to any application despite the API running");
