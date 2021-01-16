@@ -1,24 +1,24 @@
 package objects;
 
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 
 public class Player {
 
-    private String name;
+    private byte[] name;
     private final String id;
     private int attacks;
     private int damage;
     private int participations;
     private final RaidList raids;
 
-    public Player(String name, String id, int attacks, int damage, Raid raid){
-        this.name = name;
+    public Player(String name, String id, int attacks, int damage){
+        this.name = name.getBytes(StandardCharsets.UTF_8);
         this.id = id;
         this.attacks = attacks;
         this.damage = damage;
         this.raids = new RaidList();
         this.participations = 1;
-        addRaid(raid);
     }
 
     public void addDamage(int dmg){
@@ -45,12 +45,16 @@ public class Player {
         return this.participations;
     }
 
-    public String getName(){
+    public byte[] getName(){
         return this.name;
     }
 
+    public String getNameAsString(){
+        return new String(name, StandardCharsets.UTF_8);
+    }
+
     public void setName(String name) {
-        this.name = name;
+        this.name = name.getBytes(StandardCharsets.UTF_8);
     }
 
     public String getId(){
@@ -67,7 +71,7 @@ public class Player {
 
     public String toString(){
         DecimalFormat format = new DecimalFormat("#");
-        return this.name + " (" + this.id + ") has dealt " + this.damage + " with " + this.attacks +" attacks (" + format.format(this.getDpa()) + " DpA).";
+        return this.getNameAsString() + " (" + this.id + ") has dealt " + this.damage + " with " + this.attacks +" attacks (" + format.format(this.getDpa()) + " DpA).";
     }
 
     /**

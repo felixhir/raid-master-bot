@@ -7,6 +7,7 @@ import objects.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.regex.Matcher;
@@ -49,11 +50,31 @@ public class RaidHandler {
                     Matcher matcher = p.matcher(m.getContentRaw());
                     if(matcher.find()){
                         String raidDetails = m.getContentRaw().split("\n")[0];
-                        if(DatabaseHandler.add(new Raid(Integer.parseInt(raidDetails.split("_")[0]),
+                        Raid raid = new Raid(Integer.parseInt(raidDetails.split("_")[0]),
                                 Integer.parseInt(raidDetails.split("_")[1]),
                                 Integer.parseInt(raidDetails.split("_")[2]),
                                 server.getName(),
-                                new Date(m.getTimeCreated().toInstant().toEpochMilli())))) {
+                                new Date(m.getTimeCreated().toInstant().toEpochMilli()));
+                        if(DatabaseHandler.add(raid)) {
+                            String[] messageContent = m.getContentRaw().split("\n");
+                            for(int i = 2; i < messageContent.length; i++) {
+                                String[] elements = messageContent[i].split(",");
+                                Player player = new Player(elements[1],
+                                        elements[2],
+                                        Integer.parseInt(elements[3]),
+                                        Integer.parseInt(elements[4]));
+                                if(DatabaseHandler.add(raid, player)) {
+                                    raid.addPlayer(player);
+                                    logger.debug("successfully added PLAYER '{}' ({}) to db and RAID",
+                                            player.getNameAsString(),
+                                            player.getId());
+                                } else {
+                                    logger.error("something went wrong adding PLAYER '{}' to RAID '{}'",
+                                            player.getNameAsString(),
+                                            raid.getName());
+                                    break;
+                                }
+                            }
                             logger.info("message '{}' ({}) is a raid, added it to the db",
                                     m.getContentRaw().substring(0,5),
                                     m.getId());
@@ -95,8 +116,8 @@ public class RaidHandler {
      * @param record consists of a single line from any Raids csv and includes position, name, id, damage, attacks in that order
      * @return a player object
      */
-    private Player createPlayer(String[] record, Raid raid){
-        return new Player(record[1], record[2], Integer.parseInt(record[3]), Integer.parseInt(record[4]), raid);
+    private Player createPlayer(String[] record){
+        return new Player(record[1], record[2], Integer.parseInt(record[3]), Integer.parseInt(record[4]));
     }
 
 
@@ -142,8 +163,8 @@ public class RaidHandler {
         }
         for(Player p: list.getList()){
             try {
-                if (!p.getName().equals(recentRaid.getPlayers().getPlayerById(p.getId()).getName())) {
-                    p.setName(recentRaid.getPlayers().getPlayerById(p.getId()).getName());
+                if (!p.getNameAsString().equals(recentRaid.getPlayers().getPlayerById(p.getId()).getNameAsString())) {
+                    p.setName(recentRaid.getPlayers().getPlayerById(p.getId()).getNameAsString());
                 }
             } catch (Exception ignored){
             }
@@ -178,7 +199,7 @@ public class RaidHandler {
     private Player updatePlayer(Player old, Player update, Raid r){
         old.addAttacks(update.getAttacks());
         old.addDamage(update.getDamage());
-        old.setName(update.getName());
+        old.setName(new String(update.getName(), StandardCharsets.UTF_8));
         old.addParticipation();
         old.addRaid(r);
         return old;

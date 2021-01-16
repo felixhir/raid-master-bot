@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import javax.security.auth.login.LoginException;
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Properties;
 
 
 /**
