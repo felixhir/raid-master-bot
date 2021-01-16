@@ -159,17 +159,32 @@ public class DatabaseHandler extends Thread {
     public static RaidList getRaids(){
         RaidList list = new RaidList();
         try {
-            ResultSet resultSet = connection.createStatement().executeQuery("SELECT * FROM raids");
-            while (resultSet.next()) {
-                list.addRaid(new Raid(Integer.parseInt(resultSet.getString("tier")),
-                        Integer.parseInt(resultSet.getString("tries")),
-                        Integer.parseInt(resultSet.getString("attempt")),
-                        resultSet.getString("clan_name"),
-                        resultSet.getDate("date")));
+            ResultSet raidSet = connection.createStatement().executeQuery("SELECT * FROM raids");
+            while (raidSet.next()) {
+                Raid raid = new Raid(raidSet.getInt("tier"),
+                        raidSet.getInt("stage"),
+                        raidSet.getInt("attempt"),
+                        raidSet.getString("clan_name"),
+                        raidSet.getDate("date"));
+                list.addRaid(raid);
+                String sqlString = "SELECT name, damage, id, attacks FROM players AS players INNER JOIN participations AS participations ON " +
+                        "players.id=participations.player_id INNER JOIN raids AS raids ON raids.raid_name = participations.raid_id WHERE raids.raid_name='" +
+                        raid.getName() + "'";
+                ResultSet playerSet = connection.createStatement().executeQuery(sqlString);
+                while (playerSet.next()){
+                    Player player = new Player(playerSet.getString("name"),
+                            playerSet.getString("id"),
+                            playerSet.getInt("attacks"),
+                            playerSet.getInt("damage"));
+                    logger.debug("got PLAYER: {}", player.toString());
+                    raid.addPlayer(player);
+                }
             }
             return list;
         } catch (SQLException exception) {
-            logger.debug("could not fetch raids from db ~source~ {}", (Object) exception.getStackTrace());
+            logger.debug("could not fetch raids from db <{}> {}",
+                    exception.getMessage(),
+                    exception.getStackTrace());
             return list;
         }
     }

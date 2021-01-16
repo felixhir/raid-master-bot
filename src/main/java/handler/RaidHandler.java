@@ -40,30 +40,30 @@ public class RaidHandler {
                 guild.getName());
 
         if(DatabaseHandler.containsServer(this.server)) {
-            logger.info("'{}' already exists in database, skipping initialization", guild.getName());
-            //here goes reading from db :)
+            logger.info("'{}' already exists in db, parsing data", guild.getName());
+            this.raids = DatabaseHandler.getRaids();
 
         } else {
             logger.warn("initial deploy on '{}', running through messages", guild.getName());
-            for(TextChannel c: guild.getTextChannels()){
-                for(Message m: c.getIterableHistory()){
+            for (TextChannel c : guild.getTextChannels()) {
+                for (Message m : c.getIterableHistory()) {
                     Matcher matcher = p.matcher(m.getContentRaw());
-                    if(matcher.find()){
+                    if (matcher.find()) {
                         String raidDetails = m.getContentRaw().split("\n")[0];
                         Raid raid = new Raid(Integer.parseInt(raidDetails.split("_")[0]),
                                 Integer.parseInt(raidDetails.split("_")[1]),
                                 Integer.parseInt(raidDetails.split("_")[2]),
                                 server.getName(),
                                 new Date(m.getTimeCreated().toInstant().toEpochMilli()));
-                        if(DatabaseHandler.add(raid)) {
+                        if (DatabaseHandler.add(raid)) {
                             String[] messageContent = m.getContentRaw().split("\n");
-                            for(int i = 2; i < messageContent.length; i++) {
+                            for (int i = 2; i < messageContent.length; i++) {
                                 String[] elements = messageContent[i].split(",");
                                 Player player = new Player(elements[1],
                                         elements[2],
                                         Integer.parseInt(elements[3]),
                                         Integer.parseInt(elements[4]));
-                                if(DatabaseHandler.add(raid, player)) {
+                                if (DatabaseHandler.add(raid, player)) {
                                     raid.addPlayer(player);
                                     logger.debug("successfully added PLAYER '{}' ({}) to db and RAID",
                                             player.getNameAsString(),
@@ -76,7 +76,7 @@ public class RaidHandler {
                                 }
                             }
                             logger.info("message '{}' ({}) is a raid, added it to the db",
-                                    m.getContentRaw().substring(0,5),
+                                    m.getContentRaw().substring(0, 5),
                                     m.getId());
                             m.addReaction("U+2705").queue();
                         } else {
@@ -86,9 +86,13 @@ public class RaidHandler {
                     }
                 }
             }
-            if(raids.isEmpty()) {
-                logger.info("there are no recorded raids for '{}' yet", guild.getName());
-            }
+        }
+        if(raids.isEmpty()) {
+            logger.info("there are no recorded raids for '{}' yet", guild.getName());
+        } else {
+            logger.info("parsed {} raids for Server '{}'",
+                    raids.size(),
+                    guild.getName());
         }
     }
 
