@@ -69,12 +69,12 @@ public class MessageHandler {
 
 
     public boolean isNewRaid() throws SQLException {
-        String RAID_PATTERN = "([0-9]_[0-9]{1,2}_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
+        String RAID_PATTERN = "([0-9]\\?_[0-9]{1,2}\\?_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
         Pattern p = Pattern.compile(RAID_PATTERN);
         Matcher m = p.matcher(message.getContentRaw());
 
         if(m.find()){
-            String raidDetails = message.getContentRaw().split("\n")[0];
+            String raidDetails = message.getContentRaw().split("\n")[0].replace("\\", "");
             if(DatabaseHandler.containsRaid(new Raid(Integer.parseInt(raidDetails.split("_")[0]),
                     Integer.parseInt(raidDetails.split("_")[1]),
                     Integer.parseInt(raidDetails.split("_")[2]),
