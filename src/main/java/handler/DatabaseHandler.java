@@ -30,40 +30,13 @@ public class DatabaseHandler extends Thread {
             connection = DriverManager.getConnection("jdbc:mariadb://localhost/", DATABASE_USER, null);
             logger.info("successfully established a connection");
         } catch (SQLException exception) {
-            logger.error("failed to connect to database after {} seconds", timer);
-            this.start();
+            logger.error("failed to connect to database <{}> {}",
+                    exception.getMessage(),
+                    exception.getStackTrace());
         }
         connection.createStatement().execute("USE " + DATABASE_NAME);
     }
 
-
-    @SuppressWarnings("unused")
-    final
-    Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            logger.info("entering DB connection loop");
-
-            while (true) {
-                try {
-                    connection = DriverManager.getConnection("jdbc:mariadb://localhost/", DATABASE_USER, null);
-                    return;
-                } catch (SQLException minorException) {
-                    logger.error("failed to connect to database, reason is '{}': {}",
-                            minorException.getMessage(),
-                            minorException.getStackTrace());
-                    try {
-                        //noinspection BusyWait
-                        Thread.sleep(timer);
-                        logger.info("after {} seconds a new connection attempt is being started", timer);
-                    } catch (InterruptedException exception) {
-                        logger.error("failed to put thread to sleep");
-                    }
-                    timer = 2 * timer;
-                }
-            }
-        }
-    };
 
     public static boolean add(Player player) {
         try {
