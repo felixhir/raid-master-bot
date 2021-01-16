@@ -166,7 +166,7 @@ public class DatabaseHandler extends Thread {
                         raidSet.getInt("attempt"),
                         raidSet.getString("clan_name"),
                         raidSet.getDate("date"));
-                list.addRaid(raid);
+                list.add(raid);
                 String sqlString = "SELECT name, damage, id, attacks FROM players AS players INNER JOIN participations AS participations ON " +
                         "players.id=participations.player_id INNER JOIN raids AS raids ON raids.raid_name = participations.raid_id WHERE raids.raid_name='" +
                         raid.getName() + "'";

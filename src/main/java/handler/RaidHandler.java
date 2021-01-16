@@ -138,10 +138,9 @@ public class RaidHandler {
                 new Date(message.getTimeCreated().toInstant().toEpochMilli()));
 
         if(DatabaseHandler.add(raid)){
-            this.raids.addRaid(raid);
+            this.raids.add(raid);
         }
 
-        this.raids = raids.sort();
         this.players = this.determineAllPlayers();
         this.activePlayers = this.determineRecentPlayers();
 

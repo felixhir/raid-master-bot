@@ -34,7 +34,7 @@ public class Player {
     }
 
     public void addRaid(Raid raid){
-        this.raids.addRaid(raid);
+        this.raids.add(raid);
     }
 
     public RaidList getRaids(){

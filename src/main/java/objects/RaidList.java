@@ -5,6 +5,7 @@ import java.util.LinkedList;
 public class RaidList extends LinkedList<Raid> {
 
     private final LinkedList<Raid> raids;
+    private Raid recentRaid;
 
     public RaidList(){
         raids = new LinkedList<>();
@@ -18,49 +19,38 @@ public class RaidList extends LinkedList<Raid> {
         return this.raids.size();
     }
 
+    @Override
     public Raid get(int index){
         return this.raids.get(index);
     }
 
-    public void addRaid(Raid raid){
-        this.raids.add(raid);
+    @Override
+    public boolean add(Raid raid){
+        if(raids.isEmpty()) {
+            recentRaid = raid;
+            return this.raids.add(raid);
+        } else if(raid.getDate().after(getRecentRaid().getDate())) {
+            recentRaid = raid;
+            return this.raids.add(raid);
+        } else {
+            return this.raids.add(raid);
+        }
     }
 
-    public void addRaid(int index, Raid raid) {
+    @Override
+    public void add(int index, Raid raid) {
         this.raids.add(index, raid);
     }
 
-
-    public RaidList sort(){
-        RaidList list = new RaidList();
-        list.addRaid(raids.get(0));
-
-        for(int i = 1; i < raids.size(); i++){
-            for(int j = 0; i < list.size(); j++){
-                if(raids.get(i).getTier() < list.get(j).getTier()){
-                    list.addRaid(j,raids.get(i));
-                    break;
-                } else if(raids.get(i).getTier() == list.get(j).getTier()) {
-                    if(raids.get(i).getStage() < list.get(j).getStage()) {
-                        list.addRaid(j, raids.get(i));
-                        break;
-                    } else if(raids.get(i).getStage() == list.get(j).getStage()) {
-                        if(raids.get(i).getTries() < list.get(j).getTries()) {
-                            list.addRaid(j, raids.get(i));
-                            break;
-                        }
-                    }
-                }
-            }
-            list.addRaid(raids.get(i));
-        }
-        return list;
-    }
 
     public String toString(){
         return "Raid 0: " +
                 raids.get(0) +
                 " to " +
                 raids.get(raids.size()-1);
+    }
+
+    public Raid getRecentRaid(){
+        return this.recentRaid;
     }
 }
