@@ -2,18 +2,21 @@ package objects;
 
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 
 public class Player {
 
-    private byte[] name;
+    private String byteName;
+    private String realName;
     private final String id;
     private int attacks;
     private int damage;
     private int participations;
     private final RaidList raids;
 
-    public Player(String name, String id, int attacks, int damage){
-        this.name = name.getBytes(StandardCharsets.UTF_8);
+    public Player(String byteName, String id, int attacks, int damage){
+        this.byteName = byteName;
+        this.realName = this.byteArrayToString(byteName);
         this.id = id;
         this.attacks = attacks;
         this.damage = damage;
@@ -45,16 +48,17 @@ public class Player {
         return this.participations;
     }
 
-    public byte[] getName(){
-        return this.name;
+    public String getRealName(){
+        return this.realName;
     }
 
-    public String getNameAsString(){
-        return new String(name, StandardCharsets.UTF_8);
+    public String getByteName() {
+        return this.byteName;
     }
 
-    public void setName(String name) {
-        this.name = name.getBytes(StandardCharsets.UTF_8);
+    public void setRealName(String name) {
+        this.realName = name;
+        this.byteName = Arrays.toString(name.getBytes(StandardCharsets.UTF_8));
     }
 
     public String getId(){
@@ -71,7 +75,7 @@ public class Player {
 
     public String toString(){
         DecimalFormat format = new DecimalFormat("#");
-        return this.getNameAsString() + " (" + this.id + ") has dealt " + this.damage + " with " + this.attacks +" attacks (" + format.format(this.getDpa()) + " DpA).";
+        return this.getRealName() + " (" + this.id + ") has dealt " + this.damage + " with " + this.attacks +" attacks (" + format.format(this.getDpa()) + " DpA).";
     }
 
     /**
@@ -86,5 +90,15 @@ public class Player {
         } catch (ArithmeticException ignored){
         }
         return dpa;
+    }
+
+    public String byteArrayToString(String byteString) {
+        byteString = byteString.substring(1, byteString.length()-1).replace(" ", "");
+        String[] arr = byteString.split(",");
+        byte[] bytes = new byte[arr.length];
+        for(int i = 0; i < arr.length; i++) {
+            bytes[i] = (byte) Integer.parseInt(arr[i]);
+        }
+        return new String(bytes, StandardCharsets.UTF_16);
     }
 }

@@ -23,7 +23,8 @@ public class PlayerList extends LinkedList<Player> {
 
     public boolean containsName(String name){
         for (Player player : players) {
-            if (player.getNameAsString().equals(name)) {
+            System.out.println(player.getRealName());
+            if (player.getRealName().equals(name)) {
                 return true;
             }
         }
@@ -35,7 +36,7 @@ public class PlayerList extends LinkedList<Player> {
         if(this.containsPlayerById(player)) {
             Player editPlayer = getPlayerById(player.getId());
             editPlayer.addAttacks(player.getAttacks());
-            editPlayer.setName(player.getNameAsString());
+            editPlayer.setRealName(player.getRealName());
             editPlayer.addDamage(player.getDamage());
             return true;
         } else {
@@ -54,7 +55,7 @@ public class PlayerList extends LinkedList<Player> {
 
     public Player getPlayerByName(String name){
         for(Player p: players){
-            if(p.getNameAsString().equals(name)){
+            if(p.getRealName().equals(name)){
                 return p;
             }
         }

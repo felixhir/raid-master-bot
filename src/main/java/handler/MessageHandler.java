@@ -69,7 +69,7 @@ public class MessageHandler {
 
 
     public boolean isNewRaid() throws SQLException {
-        String RAID_PATTERN = "([1-3]\\?_[0-9]{1,2}\\?_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
+        String RAID_PATTERN = "([1-3]>(\\\\)?_[0-9]{1,2}(\\\\)?_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
         Pattern p = Pattern.compile(RAID_PATTERN);
         Matcher m = p.matcher(message.getContentRaw());
 
@@ -105,6 +105,7 @@ public class MessageHandler {
         switch (message.getContentRaw().substring(1)){
             case "stats":
                 if(raidHandler.getPlayers().containsName(author.getNickname())) {
+                    logger.debug("couldn't match '{}' to a participants name", author.getNickname());
                     channel.sendMessage(getPublicPlayerStats(author.getNickname())).queue();
                 } else {
                     channel.sendMessage("I couldn't match your nickname to any participants name").queue();

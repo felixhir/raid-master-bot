@@ -6,7 +6,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
-import java.util.Arrays;
 
 @SuppressWarnings("SqlNoDataSourceInspection")
 public class DatabaseHandler extends Thread {
@@ -40,12 +39,12 @@ public class DatabaseHandler extends Thread {
         try {
             if(!containsPlayer(player)){
                 String statementString = "INSERT INTO players (id, name, totaldamage, totalattacks) VALUES ('" +
-                        player.getId() + "', '" + Arrays.toString(player.getName()) + "', " + player.getDamage() + ", " + player.getAttacks() + ");";
-                logger.debug("created new PLAYER '{}'", player.getNameAsString());
+                        player.getId() + "', '" + player.getByteName() + "', " + player.getDamage() + ", " + player.getAttacks() + ");";
+                logger.debug("created new PLAYER '{}'", player.getRealName());
                 return executeStatement(statementString);
             } else {
                 logger.info("PLAYER '{}' ({}) already exists in db, updating them",
-                        player.getNameAsString(),
+                        player.getRealName(),
                         player.getId());
                 ResultSet playerSet = connection.createStatement().executeQuery("SELECT * FROM players WHERE id='" + player.getId() + "';");
                 playerSet.next();
@@ -55,22 +54,22 @@ public class DatabaseHandler extends Thread {
                         playerSet.getInt("totaldamage"));
                 existingPlayer.addDamage(player.getDamage());
                 existingPlayer.addAttacks(player.getAttacks());
-                existingPlayer.setName(player.getNameAsString());
+                existingPlayer.setRealName(player.getByteName());
                 if(updatePlayer(existingPlayer)) {
                     logger.debug("updated PLAYER '{}' ({})",
-                            existingPlayer.getNameAsString(),
+                            existingPlayer.getRealName(),
                             existingPlayer.getId());
                     return true;
                 } else {
                     logger.warn("failed to update PLAYER '{}' ({})",
-                            existingPlayer.getNameAsString(),
+                            existingPlayer.getRealName(),
                             existingPlayer.getId());
                     return false;
                 }
             }
         } catch (SQLException exception){
             logger.error("could not check for PLAYER '{}' ({}) in db, nothing was altered ~source~ {}: {}",
-                    player.getNameAsString(),
+                    player.getRealName(),
                     player.getId(),
                     exception.getMessage(),
                     exception.getStackTrace());
@@ -173,7 +172,7 @@ public class DatabaseHandler extends Thread {
                         playerSet.getInt("attacks"),
                         playerSet.getInt("damage"));
                 logger.debug("created new PLAYER '{}' ({})",
-                        player.getName(),
+                        player.getRealName(),
                         player.getId());
                 list.add(player);
             }
@@ -191,13 +190,13 @@ public class DatabaseHandler extends Thread {
         while(resultSet.next()){
             if(resultSet.getString("id").equals(player.getId())){
                 logger.debug("found PLAYER '{}' ({}) in db",
-                        player.getName(),
+                        player.getRealName(),
                         player.getId());
                 return true;
             }
         }
         logger.debug("could not find PLAYER '{}' ({}) in db",
-                player.getNameAsString(),
+                player.getRealName(),
                 player.getId());
         return false;
     }
@@ -216,7 +215,7 @@ public class DatabaseHandler extends Thread {
 
     private static boolean updatePlayer(Player player) {
         try {
-            String statementString = "UPDATE players SET name='" + Arrays.toString(player.getName()) +
+            String statementString = "UPDATE players SET name='" + player.getRealName() +
                     "', totalattacks=" + player.getAttacks() + ", totaldamage=" +
                     player.getDamage() + " WHERE id='" + player.getId() + "'";
             connection.createStatement().execute(statementString);
@@ -224,7 +223,7 @@ public class DatabaseHandler extends Thread {
             return true;
         } catch (SQLException exception) {
             logger.debug("failed updating PLAYER '{}' ({}), ~source~ {}",
-                    player.getNameAsString(),
+                    player.getRealName(),
                     player.getId(),
                     exception.getStackTrace());
             return false;

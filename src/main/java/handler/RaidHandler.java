@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,7 +23,7 @@ public class RaidHandler {
     private RaidList raids;
     private Raid recentRaid;
     private final Server server;
-    final String RAID_PATTERN = "([1-3]\\?_[0-9]{1,2}\\?_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
+    final String RAID_PATTERN = "([1-3](\\\\)?_[0-9]{1,2}(\\\\)?_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
     final Pattern p = Pattern.compile(RAID_PATTERN);
     private static final Logger logger = LogManager.getLogger(RaidHandler.class);
 
@@ -55,22 +56,23 @@ public class RaidHandler {
                                 Integer.parseInt(raidDetails.split("_")[2]),
                                 server.getName(),
                                 new Date(m.getTimeCreated().toInstant().toEpochMilli()));
+                        raids.add(raid);
                         if (DatabaseHandler.add(raid)) {
                             String[] messageContent = m.getContentRaw().split("\n");
                             for (int i = 2; i < messageContent.length; i++) {
                                 String[] elements = messageContent[i].split(",");
-                                Player player = new Player(elements[1],
+                                Player player = new Player(Arrays.toString(elements[1].getBytes(StandardCharsets.UTF_16)),
                                         elements[2],
                                         Integer.parseInt(elements[3]),
                                         Integer.parseInt(elements[4]));
                                 if (DatabaseHandler.add(raid, player)) {
                                     raid.addPlayer(player);
                                     logger.debug("successfully added PLAYER '{}' ({}) to db and RAID",
-                                            player.getNameAsString(),
+                                            player.getRealName(),
                                             player.getId());
                                 } else {
                                     logger.error("something went wrong adding PLAYER '{}' to RAID '{}'",
-                                            player.getNameAsString(),
+                                            player.getRealName(),
                                             raid.getName());
                                     break;
                                 }
@@ -131,7 +133,7 @@ public class RaidHandler {
      * @param message the message received in Discord
      */
     public void createRaid(Message message) {
-        String raidDetails = message.getContentRaw().split("\n")[0];
+        String raidDetails = message.getContentRaw().split("\n")[0].replace("\\", "");
         Raid raid = new Raid(Integer.parseInt(raidDetails.split("_")[0]),
                 Integer.parseInt(raidDetails.split("_")[1]),
                 Integer.parseInt(raidDetails.split("_")[2]),
@@ -167,8 +169,8 @@ public class RaidHandler {
         }
         for(Player p: list.getList()){
             try {
-                if (!p.getNameAsString().equals(recentRaid.getPlayers().getPlayerById(p.getId()).getNameAsString())) {
-                    p.setName(recentRaid.getPlayers().getPlayerById(p.getId()).getNameAsString());
+                if (!p.getRealName().equals(recentRaid.getPlayers().getPlayerById(p.getId()).getRealName())) {
+                    p.setRealName(recentRaid.getPlayers().getPlayerById(p.getId()).getRealName());
                 }
             } catch (Exception ignored){
             }
@@ -203,7 +205,7 @@ public class RaidHandler {
     private Player updatePlayer(Player old, Player update, Raid r){
         old.addAttacks(update.getAttacks());
         old.addDamage(update.getDamage());
-        old.setName(new String(update.getName(), StandardCharsets.UTF_8));
+        old.setRealName(update.getRealName());
         old.addParticipation();
         old.addRaid(r);
         return old;
