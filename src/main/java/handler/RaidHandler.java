@@ -35,6 +35,7 @@ public class RaidHandler {
      */
     public RaidHandler(Guild guild, Server server) throws SQLException {
         this.raids = new RaidList();
+        this.players = new PlayerList();
         this.server = server;
         logger.info("creating {} for '{}'",
                 RaidHandler.class.getName(),
@@ -43,6 +44,7 @@ public class RaidHandler {
         if(DatabaseHandler.containsServer(this.server)) {
             logger.info("'{}' already exists in db, parsing data", guild.getName());
             this.raids = DatabaseHandler.getRaids();
+            this.players = DatabaseHandler.getPlayers(guild);
 
         } else {
             logger.warn("initial deploy on '{}', running through messages", guild.getName());
@@ -95,7 +97,7 @@ public class RaidHandler {
             logger.info("parsed {} raids for Server '{}'",
                     raids.size(),
                     guild.getName());
-            players = DatabaseHandler.getPlayers(guild);
+            this.players = DatabaseHandler.getPlayers(guild);
         }
     }
 
