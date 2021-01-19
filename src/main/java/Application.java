@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.login.LoginException;
 import java.sql.SQLException;
+import java.util.Locale;
 import java.util.Objects;
 
 
@@ -77,7 +78,7 @@ public class Application extends ListenerAdapter {
                     message.getGuild().getName());
             new MessageHandler(message,
                     COMMAND_SIGN,
-                    guildHandler.getServerByName(message.getGuild().getName()).getRaidHandler());
+                    guildHandler.getServerByName(message.getGuild().getName().toLowerCase(Locale.ROOT).replace(" ", "_")).getRaidHandler());
         }
     }
 
