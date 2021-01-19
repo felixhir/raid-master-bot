@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
+import java.util.Locale;
 
 @SuppressWarnings("SqlNoDataSourceInspection")
 public class DatabaseHandler extends Thread {
@@ -164,7 +165,7 @@ public class DatabaseHandler extends Thread {
         try {
             String sqlString = "SELECT name, damage, id, attacks FROM players AS players INNER JOIN participations AS participations ON " +
                     "players.id=participations.player_id INNER JOIN raids AS raids ON raids.raid_name = participations.raid_id WHERE raids.clan_name='" +
-                    guild.getName() + "'";
+                    guild.getName().toLowerCase(Locale.ROOT).replace(" ", "_") + "'";
             ResultSet playerSet = connection.createStatement().executeQuery(sqlString);
             while(playerSet.next()) {
                 Player player = new Player(playerSet.getString("name"),
