@@ -105,7 +105,7 @@ public class MessageHandler {
         switch (message.getContentRaw().substring(1)){
             case "stats":
                 if(raidHandler.getPlayers().containsName(author.getNickname())) {
-                    logger.debug("couldn't match '{}' to a participants name", author.getNickname());
+                    logger.debug("matched PLAYER '{}' to a participants name", author.getNickname());
                     channel.sendMessage(getPublicPlayerStats(author.getNickname())).queue();
                 } else {
                     channel.sendMessage("I couldn't match your nickname to any participants name").queue();
