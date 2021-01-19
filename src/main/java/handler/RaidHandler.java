@@ -61,7 +61,7 @@ public class RaidHandler {
                             String[] messageContent = m.getContentRaw().split("\n");
                             for (int i = 2; i < messageContent.length; i++) {
                                 String[] elements = messageContent[i].split(",");
-                                Player player = new Player(Arrays.toString(elements[1].getBytes(StandardCharsets.UTF_16)),
+                                Player player = new Player(Arrays.toString(elements[1].getBytes(StandardCharsets.UTF_8)),
                                         elements[2],
                                         Integer.parseInt(elements[3]),
                                         Integer.parseInt(elements[4]));

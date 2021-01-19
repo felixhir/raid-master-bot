@@ -99,6 +99,6 @@ public class Player {
         for(int i = 0; i < arr.length; i++) {
             bytes[i] = (byte) Integer.parseInt(arr[i]);
         }
-        return new String(bytes, StandardCharsets.UTF_16);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 }
