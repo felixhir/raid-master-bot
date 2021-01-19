@@ -4,6 +4,7 @@
         <Property name="LOG_DIR">logs</Property>
         <Property name="APP_DIR">app</Property>
         <Property name="MSG_DIR">messages</Property>
+        <Property name="DEBUG_DIR">debug</Property>
     </Properties>
 
     <Appenders>
@@ -28,11 +29,20 @@
                 <SizeBasedTriggeringPolicy size="20 MB"/>
             </Policies>
         </RollingFile>
+
+        <RollingFile name="Debug" append="true"
+                     filePattern="${LOG_DIR}/${DEBUG_DIR}/debug-%d{dd MMM}.log">
+            <PatternLayout pattern="%d{MMM dd HH:mm:ss} %highlight{%-5level} %c{2} [%t] - %msg%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+        </RollingFile>
     </Appenders>
 
     <Loggers>
         <Root level="TRACE">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="Debug"/>
         </Root>
 
         <Logger name="Application" level="INFO">
@@ -40,7 +50,7 @@
         </Logger>
         <Logger name="handler" additivity="false">
             <AppenderRef ref="Console" level="DEBUG"/>
-            <AppenderRef ref="HandlerFiles" level="INFO"/>
+            <AppenderRef ref="HandlerFiles" level="DEBUG"/>
         </Logger>
     </Loggers>
 </Configuration>

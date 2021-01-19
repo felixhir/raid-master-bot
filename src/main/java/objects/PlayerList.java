@@ -25,7 +25,6 @@ public class PlayerList extends LinkedList<Player> {
         System.out.println("CALLED!");
         System.out.println(players.size());
         for (Player player : players) {
-            System.out.println(player.getRealName());
             if (player.getRealName().equals(name)) {
                 return true;
             }
