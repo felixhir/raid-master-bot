@@ -1,4 +1,4 @@
-package objects;
+package guilds;
 
 import java.util.LinkedList;
 

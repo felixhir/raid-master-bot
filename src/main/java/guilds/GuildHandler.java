@@ -1,7 +1,5 @@
-package handler;
+package guilds;
 
-import objects.Server;
-import objects.ServerList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

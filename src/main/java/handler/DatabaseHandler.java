@@ -1,9 +1,13 @@
 package handler;
 
+import guilds.Server;
 import net.dv8tion.jda.api.entities.Guild;
-import objects.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import players.Player;
+import players.PlayerList;
+import raids.Raid;
+import raids.RaidList;
 
 import java.sql.*;
 import java.util.Locale;

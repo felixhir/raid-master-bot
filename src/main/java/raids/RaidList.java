@@ -1,4 +1,4 @@
-package objects;
+package raids;
 
 import java.util.LinkedList;
 

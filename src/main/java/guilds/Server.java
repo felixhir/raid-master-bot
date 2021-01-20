@@ -1,6 +1,6 @@
-package objects;
+package guilds;
 
-import handler.RaidHandler;
+import raids.RaidHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;

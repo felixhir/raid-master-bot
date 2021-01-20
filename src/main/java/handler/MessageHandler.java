@@ -3,10 +3,11 @@ package handler;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import objects.Player;
-import objects.Raid;
+import players.Player;
+import raids.Raid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import raids.RaidHandler;
 
 import java.sql.Date;
 import java.sql.SQLException;

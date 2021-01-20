@@ -4,5 +4,5 @@
 build/
 .gradle/
 .idea/
-raids/
+*.txt
 log/

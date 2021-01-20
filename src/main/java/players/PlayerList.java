@@ -1,4 +1,4 @@
-package objects;
+package players;
 
 import org.jetbrains.annotations.NotNull;
 

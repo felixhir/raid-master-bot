@@ -1,11 +1,14 @@
-package handler;
+package raids;
 
+import guilds.Server;
+import handler.DatabaseHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import objects.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import players.Player;
+import players.PlayerList;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;

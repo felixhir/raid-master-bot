@@ -1,4 +1,7 @@
-package objects;
+package players;
+
+import raids.Raid;
+import raids.RaidList;
 
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
