@@ -42,7 +42,7 @@ public class Raid {
     }
 
     public String toString(){
-        return "Raid (Tier " + this.tier + " - Stage " + this.stage + ") attempt #" + this.tries + " beaten with " + this.players.size() + "players";
+        return "Raid (Tier " + this.tier + " - Stage " + this.stage + ") attempt #" + this.tries + " beaten with " + this.players.size() + " players";
     }
 
     public int getStage(){

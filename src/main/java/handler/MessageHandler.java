@@ -12,6 +12,7 @@ import raids.RaidHandler;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -79,7 +80,7 @@ public class MessageHandler {
             if(DatabaseHandler.containsRaid(new Raid(Integer.parseInt(raidDetails.split("_")[0]),
                     Integer.parseInt(raidDetails.split("_")[1]),
                     Integer.parseInt(raidDetails.split("_")[2]),
-                    message.getGuild().getName(),
+                    message.getGuild().getName().toLowerCase(Locale.ROOT).replace(" ", "_"),
                     new Date(message.getTimeCreated().toInstant().toEpochMilli())))) {
                 message.addReaction("U+274C").queue();
                 logger.info("'{}' already exists as a raid, message ({}) will be marked",
