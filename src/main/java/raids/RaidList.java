@@ -37,17 +37,14 @@ public class RaidList extends LinkedList<Raid> {
         }
     }
 
-    @Override
-    public void add(int index, Raid raid) {
-        this.raids.add(index, raid);
-    }
-
-
     public String toString(){
-        return "Raid 0: " +
-                raids.get(0) +
-                " to " +
-                raids.get(raids.size()-1);
+        StringBuilder s = new StringBuilder("List contains:");
+        for(Raid r: raids) {
+            s.append(" '").append(r.getName()).append("',");
+        }
+        s = new StringBuilder(s.substring(0, s.length() - 1));
+
+        return s.toString();
     }
 
     public Raid getRecentRaid(){

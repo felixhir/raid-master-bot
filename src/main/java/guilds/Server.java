@@ -17,7 +17,7 @@ public class Server {
     private RaidHandler raidHandler;
 
     public Server(TextChannel channel, Guild guild) throws SQLException {
-        this.name = guild.getName().toLowerCase(Locale.ROOT).replace(" ", "_");
+        this.name = guild.getName();
         this.channel = channel;
         this.raidHandler = instantiateRaidHandler();
         this.guild = guild;

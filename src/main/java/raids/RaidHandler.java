@@ -1,7 +1,7 @@
 package raids;
 
 import guilds.Server;
-import handler.DatabaseHandler;
+import database.DatabaseHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;

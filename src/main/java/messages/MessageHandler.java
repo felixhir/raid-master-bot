@@ -1,5 +1,6 @@
-package handler;
+package messages;
 
+import database.DatabaseHandler;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -12,7 +13,6 @@ import raids.RaidHandler;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,12 +75,12 @@ public class MessageHandler {
         Pattern p = Pattern.compile(RAID_PATTERN);
         Matcher m = p.matcher(message.getContentRaw());
 
-        if(m.find()){
+        if(matchRaid(message.getContentRaw())){
             String raidDetails = message.getContentRaw().split("\n")[0].replace("\\", "");
             if(DatabaseHandler.containsRaid(new Raid(Integer.parseInt(raidDetails.split("_")[0]),
                     Integer.parseInt(raidDetails.split("_")[1]),
                     Integer.parseInt(raidDetails.split("_")[2]),
-                    message.getGuild().getName().toLowerCase(Locale.ROOT).replace(" ", "_"),
+                    message.getGuild().getName(),
                     new Date(message.getTimeCreated().toInstant().toEpochMilli())))) {
                 message.addReaction("U+274C").queue();
                 logger.info("'{}' already exists as a raid, message ({}) will be marked",
@@ -150,6 +150,16 @@ public class MessageHandler {
                 r.getStage() +
                 " attempt #" +
                 r.getTries();
+    }
+
+    public static boolean matchRaid(String text) {
+        String RAID_PATTERN = "[1-3](\\\\)?_[0-9]{1,2}(\\\\)?_[0-9]{1,3}\\n" +
+                "Rank,Player,ID,Attacks,On-Strat Damage\\n" +
+                "([0-9]{1,2},[^,]*,[a-zA-Z0-9]*,[0-9]*,[0-9]*\\n?)*";
+        Pattern p = Pattern.compile(RAID_PATTERN);
+        Matcher m = p.matcher(text);
+
+        return m.matches();
     }
 
 }
