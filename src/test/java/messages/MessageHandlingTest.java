@@ -7,6 +7,7 @@ import raids.RaidHandler;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
+@SuppressWarnings("SpellCheckingInspection")
 class MessageHandlingTest {
 
     private String messageRaidComplete;

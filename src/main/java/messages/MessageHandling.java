@@ -21,14 +21,28 @@ public class MessageHandling {
     public static String getAnswer(String messageContent, RaidHandler raidHandler) {
         String prefix = messageContent.substring(0,1);
         String command = messageContent.substring(1).split(" ")[0];
-        String context = messageContent.substring(command.length());
+        String context;
+        try {
+            context = messageContent.substring(command.length()+2);
+        } catch (Exception ignored) {
+            context = "";
+        }
+
 
         switch (command) {
             case "commands":
                 return "_" + prefix + "commands:_ returns list of commands\n" +
                         "_" + prefix + "stats:_ returns your stats";
             case "stats":
-                return raidHandler.getPlayers().getPlayerByName(context).toString();
+                if(context.equals("")) {
+                    return "Please make sure to include a name";
+                } else {
+                    if(raidHandler.getPlayers().getPlayerByName(context) == null) {
+                        return "Failed to match name";
+                    } else {
+                        return raidHandler.getPlayers().getPlayerByName(context).toString();
+                    }
+                }
             default:
                 return "I couldn't find the command _" + prefix + command + "_. Try _" + prefix + "commands_";
         }

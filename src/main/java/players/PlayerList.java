@@ -2,6 +2,8 @@ package players;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class PlayerList extends LinkedList<Player> {
