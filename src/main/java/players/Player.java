@@ -77,8 +77,8 @@ public class Player {
     }
 
     public String toString(){
-        DecimalFormat format = new DecimalFormat("#");
-        return this.getRealName() + " (" + this.id + ") has dealt " + this.damage + " with " + this.attacks +" attacks (" + format.format(this.getDpa()) + " DpA).";
+        DecimalFormat format = new DecimalFormat("#,###");
+        return this.getRealName() + " (" + this.id + ") has dealt " + format.format(this.damage) + " damage with " + this.attacks +" attacks (" + format.format(this.getDpa()) + " DpA).";
     }
 
     /**

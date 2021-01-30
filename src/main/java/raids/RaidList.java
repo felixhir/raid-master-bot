@@ -50,4 +50,13 @@ public class RaidList extends LinkedList<Raid> {
     public Raid getRecentRaid(){
         return this.recentRaid;
     }
+
+    public boolean containsRaid(String name) {
+        for(Raid r: raids) {
+            if (r.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -1,6 +1,5 @@
 import database.DatabaseHandler;
 import guilds.GuildHandler;
-import messages.MessageHandler;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -28,7 +27,6 @@ public class Application extends ListenerAdapter {
 
 
     private static final String CHANNEL_NAME = "raid-master";
-    private static final String COMMAND_SIGN = "!";
     private static final String BOT_TOKEN = "RAID_MASTER_TOKEN";
     private static final String BOT_NAME = "Raid Master";
 
@@ -75,9 +73,7 @@ public class Application extends ListenerAdapter {
                     message.getId(),
                     Objects.requireNonNull(message.getMember()).getNickname(),
                     message.getGuild().getName());
-            new MessageHandler(message,
-                    COMMAND_SIGN,
-                    guildHandler.getServerByName(message.getGuild().getName()).getRaidHandler());
+            guildHandler.getServerByName(message.getGuild().getName()).receiveMessage(message);
         }
     }
 
@@ -96,7 +92,7 @@ public class Application extends ListenerAdapter {
         logger.debug("the channel '{}' will be used as default for {}", channel.getName(), guild.getName());
 
         try {
-            guildHandler.addServer(new Server(channel, guild));
+            guildHandler.addServer(new Server(guild, true));
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -118,14 +114,7 @@ public class Application extends ListenerAdapter {
 
     public static void setupBot() throws SQLException {
         for(Guild g: jda.getGuilds()){
-            TextChannel textChannel = g.getDefaultChannel();
-            for(TextChannel t: g.getTextChannels()){
-                assert textChannel != null;
-                if(t.getName().equals(CHANNEL_NAME)){
-                    textChannel = t;
-                }
-            }
-            guildHandler.addServer(new Server(textChannel, g));
+            guildHandler.addServer(new Server(g, false));
         }
         if(guildHandler.getServers().isEmpty()) {
             logger.warn("the bot is not connected to any application despite the API running");
