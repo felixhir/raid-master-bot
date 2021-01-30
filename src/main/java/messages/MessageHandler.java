@@ -35,6 +35,7 @@ public class MessageHandler {
                 m.getContentRaw().substring(0, Math.min(m.getContentRaw().length(), 5)),
                 m.getId(),
                 m.getGuild().getName());
+
         try {
             if(this.isNewRaid()) {
                 logger.info("handled raid {} from '{}'",
@@ -71,10 +72,6 @@ public class MessageHandler {
 
 
     public boolean isNewRaid() throws SQLException {
-        String RAID_PATTERN = "([1-3]>(\\\\)?_[0-9]{1,2}(\\\\)?_[0-9]{1,3}\\nRank,Player,ID,Attacks,On-Strat Damage\\n([0-9]{1,2},[0-9|:space_\\p{L}-+]*?,[:alnum]*,[0-9]{1,2},[0-9]*\\n?)*)";
-        Pattern p = Pattern.compile(RAID_PATTERN);
-        Matcher m = p.matcher(message.getContentRaw());
-
         if(matchRaid(message.getContentRaw())){
             String raidDetails = message.getContentRaw().split("\n")[0].replace("\\", "");
             if(DatabaseHandler.containsRaid(new Raid(Integer.parseInt(raidDetails.split("_")[0]),
