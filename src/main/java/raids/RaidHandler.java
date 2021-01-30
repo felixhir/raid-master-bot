@@ -220,4 +220,13 @@ public class RaidHandler {
         return raids.size();
     }
 
+    public boolean containsRaid(String name) {
+        for(Raid r: raids) {
+            if (r.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

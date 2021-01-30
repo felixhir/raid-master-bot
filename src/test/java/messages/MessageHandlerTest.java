@@ -1,5 +1,6 @@
 package messages;
 
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ class MessageHandlerTest {
     private String incompleteMessage1;
     private String incompleteMessage2;
     private MessageHandler handler;
+    private Message message;
 
     @BeforeEach
     public void setup() {
@@ -52,7 +54,8 @@ class MessageHandlerTest {
                 "4,Shadoof,ke43b73,24,16422400\n" +
                 "5,Sword Master,y64mpd8,28,14599081\n" +
                 "6,Chewblp,q4req5g,24,13488957";
-        //handler = new MessageHandler(mock(Message.class),"!",mock(RaidHandler.class));
+        message = new MessageBuilder("Test content").build();
+        handler = new MessageHandler(message,mock(RaidHandler.class));
     }
 
     @Test
@@ -85,6 +88,11 @@ class MessageHandlerTest {
         boolean result = MessageHandler.matchRaid(incompleteMessage1);
 
         assertFalse(result);
+    }
+
+    @Test
+    public void isCommand_resturnsWithoutContext() {
+        String result = "a";
     }
 
 }

@@ -25,11 +25,11 @@ public class MessageHandler {
     private final RaidHandler raidHandler;
     public static final Logger logger = LogManager.getLogger(MessageHandler.class);
 
-    public MessageHandler(Message m, String s, RaidHandler h) {
+    public MessageHandler(Message m, RaidHandler h) {
         message = m;
         channel = m.getChannel();
         author = m.getMember();
-        sign = s;
+        sign = "!";
         raidHandler = h;
         logger.info("message '{}' ({}) handler created by '{}'",
                 m.getContentRaw().substring(0, Math.min(m.getContentRaw().length(), 5)),
@@ -137,7 +137,8 @@ public class MessageHandler {
                 df.format(p.getAttacks()) +
                 "\nDpA: " +
                 df.format(p.getDpa()) +
-                "\nLatest raid: " ;
+                "\nLatest raid: " +
+                p.getRaids().getRecentRaid();
     }
 
     private String getPublicRaidString(Raid r){
@@ -147,6 +148,10 @@ public class MessageHandler {
                 r.getStage() +
                 " attempt #" +
                 r.getTries();
+    }
+
+    private String getContext(String message) {
+        return "a";
     }
 
     public static boolean matchRaid(String text) {

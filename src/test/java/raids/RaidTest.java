@@ -81,7 +81,7 @@ class RaidTest {
     public void toString_returnsRaidAsString() {
         String result = raid.toString();
 
-        String expectedString = "Raid (Tier 2 - Stage 4) attempt #1 beaten with 0 players";
+        String expectedString = "Tier 2 - Stage 4 - attempt #1";
         assertEquals(expectedString, result);
     }
 }
