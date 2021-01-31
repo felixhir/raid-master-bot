@@ -1,8 +1,5 @@
 package players;
 
-import raids.Raid;
-import raids.RaidList;
-
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.Arrays;
@@ -14,8 +11,6 @@ public class Player {
     private final String id;
     private int attacks;
     private int damage;
-    private int participations;
-    private final RaidList raids;
 
     public Player(String byteName, String id, int attacks, int damage){
         this.byteName = byteName;
@@ -23,8 +18,6 @@ public class Player {
         this.id = id;
         this.attacks = attacks;
         this.damage = damage;
-        this.raids = new RaidList();
-        this.participations = 1;
     }
 
     public void addDamage(int dmg){
@@ -33,22 +26,6 @@ public class Player {
 
     public void addAttacks(int attacks) {
         this.attacks += attacks;
-    }
-
-    public void addParticipation(){
-        this.participations++;
-    }
-
-    public void addRaid(Raid raid){
-        this.raids.add(raid);
-    }
-
-    public RaidList getRaids(){
-        return this.raids;
-    }
-
-    public int getParticipations(){
-        return this.participations;
     }
 
     public String getRealName(){

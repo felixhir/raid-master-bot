@@ -44,11 +44,19 @@ public class Server {
 
         if(createdOnJoin) {
             this.sendMessage("Hi, this is Raid Master.\nPlease make sure all of your raids follow the schema specified here: \n" +
-                    "Once you are done, use _!scan_. (Note: This may take some time - you can also rerun this command at any time)");
+                    "Once you are done, use _!scan_. (you can rerun this command at any time if you missed any raids)");
         } else {
             logger.info("pulling data for SERVER '{}'", this.guild.getName());
             raids = DatabaseHandler.getRaids();
             players = DatabaseHandler.getPlayers(this.guild);
+            if(raids.isEmpty()) {
+                this.sendMessage("I haven't found any raids yet, make sure they match the schema here:");
+                logger.warn("found 0 RAIDS for SERVER '{}'", this.guild.getName());
+            } else {
+                logger.info("found {} RAIDS for SERVER '{}'",
+                        raids.size(),
+                        this.guild.getName());
+            }
         }
     }
 
@@ -76,12 +84,16 @@ public class Server {
         String content = message.getContentRaw();
         if(isRaid(content)) {
             if(!this.raids.containsRaid(getRaidName(content))) {
-                this.createRaid(message);
+                this.raids.add(this.createRaid(message));
+                players = DatabaseHandler.getPlayers(this.guild);
                 PlayerList afks = getInactivePlayers();
+
+                message.addReaction("U+2705").queue();
                 logger.info("message '{}' ({}) was handled as a new raid",
                         message.getContentRaw().substring(0,Math.min(5,message.getContentRaw().length())),
                         message.getId());
             } else {
+                message.addReaction("U+274C").queue();
                 logger.info("message '{}' ({}) was ignored as an existing raid",
                         message.getContentRaw().substring(0,Math.min(5,message.getContentRaw().length())),
                         message.getId());
@@ -108,8 +120,16 @@ public class Server {
         }
         switch (command) {
             case "scan":
+                int amount = raids.size();
                 logger.info("starting scan for SERVER '{}'", guild.getName());
+                sendMessage("Starting my scan, this may take a while");
                 scanMessages();
+                raids = DatabaseHandler.getRaids();
+                players = DatabaseHandler.getPlayers(this.guild);
+                sendMessage("Finished scanning, I found " + (raids.size()-amount) + " new raid(s).");
+                logger.info("scanned SERVER '{}' and found {} new RAIDS",
+                        this.guild.getName(),
+                        raids.size() - amount);
                 break;
             case "setprefix":
                 this.setPrefix(context);
@@ -148,13 +168,13 @@ public class Server {
 
     private Raid createRaid(Message message) {
         String[] messageContent = message.getContentRaw().split("\n");
-        String[] raidDetails = messageContent[0].replace("\\", "").split("_");
+        String[] raidDetails = messageContent[0].replace("\\", "").split("-");
         Raid raid = new Raid(Integer.parseInt(raidDetails[0]),
                 Integer.parseInt(raidDetails[1]),
                 Integer.parseInt(raidDetails[2]),
                 this.guild.getName(),
                 new Date(message.getTimeCreated().toInstant().toEpochMilli()));
-
+        DatabaseHandler.add(raid);
         for (int i = 2; i < messageContent.length; i++) {
             Player player = createPlayer(messageContent[i]);
             if (DatabaseHandler.add(raid, player)) {
@@ -179,13 +199,20 @@ public class Server {
                 Integer.parseInt(s[4]));
     }
 
+
+    /**
+     * Returns the name a raid would be given. This does not require a {@link Raid} to exist and instead uses the String it would be created from.
+     *
+     * @param raid the entire raid as a String
+     * @return the name of the raid
+     */
     public String getRaidName(String raid) {
         DecimalFormat df = new DecimalFormat("00");
         String firstLine = raid.split("\n")[0].replace("\\", "");
 
         return firstLine.charAt(0) +
-                df.format(Integer.valueOf(firstLine.split("_")[1])) +
-                df.format(Integer.valueOf(firstLine.split("_")[2])) +
+                df.format(Integer.valueOf(firstLine.split("-")[1])) +
+                df.format(Integer.valueOf(firstLine.split("-")[2])) +
                 this.name.substring(0, 5);
     }
 
@@ -229,11 +256,13 @@ public class Server {
         for (TextChannel c : this.guild.getTextChannels()) {
             for (Message m : c.getIterableHistory()) {
                 if (this.isRaid(m.getContentRaw())) {
-                    Raid raid = createRaid(m);
-                    if (DatabaseHandler.add(raid)) {
-                        m.addReaction("U+2705").queue();
+                    if(!raids.containsRaid(getRaidName(m.getContentRaw()))) {
+                        Raid raid = createRaid(m);
+                        if (DatabaseHandler.add(raid)) {
+                            m.addReaction("U+2705").queue();
+                        }
                     } else {
-                        logger.debug("found a raid for more than one time (msg: {})", m.getId());
+                        logger.info("found a raid for more than one time (msg: {})", m.getId());
                         m.addReaction("U+274C").queue();
                     }
                 }
@@ -243,7 +272,7 @@ public class Server {
 
 
     public boolean isRaid(String messageContent) {
-        String RAID_PATTERN = "[1-3](\\\\)?_[0-9]{1,2}(\\\\)?_[0-9]{1,3}\\n" +
+        String RAID_PATTERN = "[1-3]-[0-9]{1,2}-[0-9]{1,3}\\n" +
                 "Rank,Player,ID,Attacks,On-Strat Damage\\n" +
                 "([0-9]{1,2},[^,]*,[a-zA-Z0-9]*,[0-9]*,[0-9]*\\n?)*";
         Pattern p = Pattern.compile(RAID_PATTERN);
@@ -253,9 +282,6 @@ public class Server {
     }
 
     public boolean isCommand(String messageContent) {
-        logger.debug("checking if message '{}' is a command with prefix: '{}'",
-                messageContent.substring(0,Math.min(5,messageContent.length())),
-                prefix);
         return messageContent.substring(0,1).equals(prefix);
     }
 

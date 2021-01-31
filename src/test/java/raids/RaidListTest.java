@@ -7,7 +7,6 @@ import java.sql.Date;
 import java.util.LinkedList;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 
 class RaidListTest {
 
@@ -80,12 +79,28 @@ class RaidListTest {
     }
 
     @Test
-    void testToString_returnsAllRaidNames() {
+    void toString_returnsAllRaidNames() {
         raids.add(testRaid);
         raids.add(testRaidTwo);
         String result = raids.toString();
         String expected = "List contains: '10101test_', '20202test_'";
 
         assertEquals(expected, result);
+    }
+
+    @Test
+    void containsRaid_raidIsntContained() {
+        raids.add(testRaid);
+        boolean result = raids.containsRaid(testRaidTwo.getName());
+
+        assertFalse(result);
+    }
+
+    @Test
+    void containsRaid_raidIsContained() {
+        raids.add(testRaid);
+        boolean result = raids.containsRaid(testRaid.getName());
+
+        assertTrue(result);
     }
 }

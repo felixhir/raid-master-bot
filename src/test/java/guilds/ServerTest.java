@@ -25,7 +25,7 @@ class ServerTest {
     void setUp() {
         server = new Server();
         raid = new Raid(1,2,3,"clanclan", new Date(10-10-2020));
-        messageRaidComplete = "2\\_7\\_1\n" +
+        messageRaidComplete = "2-7-1\n" +
                 "Rank,Player,ID,Attacks,On-Strat Damage\n" +
                 "1,Fhaarkas,xb3gkb5,28,18365519\n" +
                 "2,Shadoof,ke43b73,24,14169301\n" +
@@ -35,10 +35,10 @@ class ServerTest {
                 "6,Chewblp,q4req5g,24,12026131\n" +
                 "7,Ralfiito,gmqm8ee,24,11419947\n" +
                 "8,Lord of Darkness,4mdd2md,28,10321973";
-        messageRaidCompleteBasic = "2_01_3\n" +
+        messageRaidCompleteBasic = "2-01-3\n" +
                 "Rank,Player,ID,Attacks,On-Strat Damage\n" +
                 "1,Fhaarkas,xb3gkb5,28,18365519";
-        messageRaidFlawed = "5\\_7\\_1\n" +
+        messageRaidFlawed = "5-7-1\n" +
                 "Rank,Player,ID,Attacks,On-Strat Damage\n" +
                 "1,Fhaarkas,xb3gkb5,28,18365519\n" +
                 "2,Shadoof,ke43b73,24,14169301\n";
@@ -48,9 +48,9 @@ class ServerTest {
 
     @Test
     public void getRaidName_formsRaidName() {
-        String result = server.getRaidName("1\\_2\\_3");
+        String result = server.getRaidName(messageRaidComplete);
 
-        assertEquals("10203clanc", result);
+        assertEquals("20701clanc", result);
     }
 
     @Test
