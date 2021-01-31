@@ -65,7 +65,7 @@ class PlayerListTest {
         list.add(playerTwo);
         String result = list.toString();
 
-        assertEquals("List of players: 'Chad Thundercock', 'Virgin'", result);
+        assertEquals("'Chad Thundercock', 'Virgin'", result);
     }
 
     @Test

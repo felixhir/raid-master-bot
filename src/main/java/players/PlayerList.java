@@ -47,11 +47,11 @@ public class PlayerList extends LinkedList<Player> {
 
     @Override
     public String toString(){
-        StringBuilder returnString = new StringBuilder("List of players:");
+        StringBuilder returnString = new StringBuilder();
         for(Player p: this){
-            returnString.append(" '").append(p.getRealName()).append("',");
+            returnString.append("'").append(p.getRealName()).append("', ");
         }
-        return returnString.substring(0,returnString.length()-1);
+        return returnString.substring(0,Math.max(0,returnString.length()-2));
     }
 
     /**

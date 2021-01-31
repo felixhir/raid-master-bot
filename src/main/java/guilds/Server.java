@@ -66,10 +66,16 @@ public class Server {
     public Server() {
         this.prefix = "!";
         this.name = "clanclan";
+        this.raids = new RaidList();
+        this.afkTimer = 2;
     }
 
     public String getName(){
         return this.guild.getName();
+    }
+
+    public RaidList getRaids() {
+        return this.raids;
     }
 
     public void sendMessage(String message){
@@ -87,6 +93,11 @@ public class Server {
                 this.raids.add(this.createRaid(message));
                 players = DatabaseHandler.getPlayers(this.guild);
                 PlayerList afks = getInactivePlayers();
+                if(afks.isEmpty()) {
+                    sendMessage("There are no players who missed attacks!");
+                } else {
+                    sendMessage("These players have not participated in the last " + afkTimer + " raids: " + afks);
+                }
 
                 message.addReaction("U+2705").queue();
                 logger.info("message '{}' ({}) was handled as a new raid",
@@ -138,11 +149,24 @@ public class Server {
                         guild.getName(),
                         this.prefix);
                 break;
+            case "setafk":
+                try {
+                    int newTime = Integer.parseInt(context);
+                    this.setAfkTimer(newTime);
+                    sendMessage("changed afktimer to: " + this.afkTimer);
+                    logger.info("set afktimer of SERVER '{}' to '{}'",
+                            guild.getName(),
+                            this.afkTimer);
+                } catch (Exception e) {
+                    sendMessage("this is not a valid time, nothing changed");
+                }
+                break;
             case "commands":
                 sendMessage("_" + prefix + "commands:_ returns list of commands\n" +
                         "_" + prefix + "stats <name>:_ returns a players stats\n" +
                         "_" + prefix + "scan:_ scans all messages for raids\n" +
-                        "_" + prefix + "setprefix <character>:_ changes the command prefix");
+                        "_" + prefix + "setprefix <character>:_ changes the command prefix\n" +
+                        "_" + prefix + "setafk <number>:_ sets maximum amount of missed raids");
                 break;
             case "stats":
                 //noinspection IfStatementWithIdenticalBranches
@@ -220,12 +244,12 @@ public class Server {
         this.afkTimer = time;
     }
 
-    private PlayerList getInactivePlayers() {
+    public PlayerList getInactivePlayers() {
         PlayerList list = new PlayerList();
-        for(Player p: raids.getRecentRaid().getPlayers()) {
+        for(Player p: raids.get(raids.size()-afkTimer-1).getPlayers()) {
             boolean add = false;
-            if(raids.get(0 + afkTimer).getPlayers().containsPlayerById(p.getId())) {
-                for(int i = raids.size()-1; i > 0 + afkTimer; i--) {
+            if(raids.get(Math.max(0,raids.size()-afkTimer-1)).getPlayers().containsPlayerById(p.getId())) {
+                for(int i = raids.size()-afkTimer; i < raids.size(); i++) {
                     if(!raids.get(i).getPlayers().containsPlayerById(p.getId())) {
                         add = true;
                     } else {
@@ -257,10 +281,8 @@ public class Server {
             for (Message m : c.getIterableHistory()) {
                 if (this.isRaid(m.getContentRaw())) {
                     if(!raids.containsRaid(getRaidName(m.getContentRaw()))) {
-                        Raid raid = createRaid(m);
-                        if (DatabaseHandler.add(raid)) {
-                            m.addReaction("U+2705").queue();
-                        }
+                        raids.add(createRaid(m));
+                        m.addReaction("U+2705").queue();
                     } else {
                         logger.info("found a raid for more than one time (msg: {})", m.getId());
                         m.addReaction("U+274C").queue();

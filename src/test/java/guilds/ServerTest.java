@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import players.Player;
 import raids.Raid;
+import raids.RaidList;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
@@ -47,14 +48,14 @@ class ServerTest {
 
 
     @Test
-    public void getRaidName_formsRaidName() {
+    void getRaidName_formsRaidName() {
         String result = server.getRaidName(messageRaidComplete);
 
         assertEquals("20701clanc", result);
     }
 
     @Test
-    public void createPlayer_returnsPlayer() {
+    void createPlayer_returnsPlayer() {
         String expected = new Player(Arrays.toString("Testname".getBytes(StandardCharsets.UTF_8)),"abcdefg",5,0).toString();
         String result = server.createPlayer("1,Testname,abcdefg,5,0").toString();
 
@@ -62,44 +63,67 @@ class ServerTest {
     }
 
     @Test
-    public void isRaid_recognizesBasicRaid() {
+    void isRaid_recognizesBasicRaid() {
         boolean result = server.isRaid(messageRaidCompleteBasic);
 
         assertTrue(result);
     }
 
     @Test
-    public void isRaid_recognizesFullRaid() {
+    void isRaid_recognizesFullRaid() {
         boolean result = server.isRaid(messageRaidComplete);
 
         assertTrue(result);
     }
 
     @Test
-    public void isRaid_deniesFlawedRaid() {
+    void isRaid_deniesFlawedRaid() {
         boolean result = server.isRaid(messageRaidFlawed);
 
         assertFalse(result);
     }
 
     @Test
-    public void isCommand_deniesTextMessage() {
+    void isCommand_deniesTextMessage() {
         boolean result = server.isCommand(messageText);
 
         assertFalse(result);
     }
 
     @Test
-    public void isCommand_recognizesCommand() {
+    void isCommand_recognizesCommand() {
         boolean result = server.isCommand("!stats");
 
         assertTrue(result);
     }
 
     @Test
-    public void isCommand_recognizesCommandWithContext() {
+    void isCommand_recognizesCommandWithContext() {
         boolean result = server.isCommand("!stats Chad");
 
         assertTrue(result);
+    }
+
+    @Test
+    void getAfks_returnsAfkPlayer() {
+        Player playerOne = new Player(Arrays.toString("Chad Thundercock".getBytes(StandardCharsets.UTF_8)),
+                "abcdefg",
+                100,
+                666000);
+        Player playerTwo = new Player(Arrays.toString("Virgin".getBytes(StandardCharsets.UTF_8)),
+                "000aaa",
+                1,
+                0);
+        server.getRaids().add(new Raid(1,2,3,"clanclan", new Date(1-10-2020)));
+        server.getRaids().get(0).addPlayer(playerOne);
+        server.getRaids().get(0).addPlayer(playerTwo);
+        server.getRaids().add(new Raid(2,2,3,"clanclan", new Date(10-10-2020)));
+        server.getRaids().get(1).addPlayer(new Player(Arrays.toString("t".getBytes(StandardCharsets.UTF_8)),"1",1,2));
+        server.getRaids().get(1).addPlayer(playerOne);
+        server.getRaids().add(new Raid(3,2,3,"clanclan", new Date(12-10-2020)));
+        server.getRaids().get(2).addPlayer(playerOne);
+        String result = server.getInactivePlayers().toString();
+
+        assertEquals("'Virgin'", result);
     }
 }

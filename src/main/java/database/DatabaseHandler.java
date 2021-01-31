@@ -134,7 +134,6 @@ public class DatabaseHandler extends Thread {
         RaidList list = new RaidList();
         try {
             ResultSet raidSet = connection.createStatement().executeQuery("SELECT * FROM raids");
-            logger.debug("found {} RAIDS in DB", raidSet.getFetchSize());
             while (raidSet.next()) {
                 Raid raid = new Raid(raidSet.getInt("tier"),
                         raidSet.getInt("stage"),
@@ -146,9 +145,6 @@ public class DatabaseHandler extends Thread {
                         "players.id=participations.player_id INNER JOIN raids AS raids ON raids.raid_name = participations.raid_id WHERE raids.raid_name='" +
                         raid.getName() + "'";
                 ResultSet playerSet = connection.createStatement().executeQuery(sqlString);
-                logger.debug("found {} PLAYERS in DB for RAID '{}'",
-                        playerSet.getFetchSize(),
-                        raid.getName());
                 while (playerSet.next()){
                     Player player = new Player(playerSet.getString("name"),
                             playerSet.getString("id"),
@@ -157,7 +153,11 @@ public class DatabaseHandler extends Thread {
                     logger.debug("got PLAYER: {}", player.toString());
                     raid.addPlayer(player);
                 }
+                logger.debug("found {} PLAYERS in DB for RAID '{}'",
+                        raid.getPlayers().size(),
+                        raid.getName());
             }
+            logger.debug("found {} RAIDS in DB", list.size());
             return list;
         } catch (SQLException exception) {
             logger.debug("could not fetch raids from db <{}> {}",
