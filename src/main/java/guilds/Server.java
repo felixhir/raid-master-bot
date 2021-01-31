@@ -248,14 +248,11 @@ public class Server {
         PlayerList list = new PlayerList();
         for(Player p: raids.get(raids.size()-afkTimer-1).getPlayers()) {
             boolean add = false;
-            if(raids.get(Math.max(0,raids.size()-afkTimer-1)).getPlayers().containsPlayerById(p.getId())) {
+            if(raids.get(Math.max(0,raids.size()-afkTimer-1)).getPlayers().containsPlayerById(p.getId()) &&
+                p.getAttacks() != 0) {
                 for(int i = raids.size()-afkTimer; i < raids.size(); i++) {
-                    if(!raids.get(i).getPlayers().containsPlayerById(p.getId())) {
-                        add = true;
-                    } else {
-                        add = false;
-                        break;
-                    }
+                    add = !raids.get(i).getPlayers().containsPlayerById(p.getId()) &&
+                            p.getAttacks() != 0;
                 }
                 if(add) list.add(p);
             }

@@ -114,16 +114,24 @@ class ServerTest {
                 "000aaa",
                 1,
                 0);
+
         server.getRaids().add(new Raid(1,2,3,"clanclan", new Date(1-10-2020)));
         server.getRaids().get(0).addPlayer(playerOne);
         server.getRaids().get(0).addPlayer(playerTwo);
+        server.getRaids().get(0).addPlayer(new Player(Arrays.toString("No attacks".getBytes(StandardCharsets.UTF_8)),
+                "abcabc",
+                2,
+                100));
         server.getRaids().add(new Raid(2,2,3,"clanclan", new Date(10-10-2020)));
-        server.getRaids().get(1).addPlayer(new Player(Arrays.toString("t".getBytes(StandardCharsets.UTF_8)),"1",1,2));
         server.getRaids().get(1).addPlayer(playerOne);
+        server.getRaids().get(1).addPlayer(new Player(Arrays.toString("No attacks".getBytes(StandardCharsets.UTF_8)),
+                "abcabc",
+                0,
+                0));
         server.getRaids().add(new Raid(3,2,3,"clanclan", new Date(12-10-2020)));
         server.getRaids().get(2).addPlayer(playerOne);
         String result = server.getInactivePlayers().toString();
 
-        assertEquals("'Virgin'", result);
+        assertEquals("'Virgin', 'No attacks'", result);
     }
 }
