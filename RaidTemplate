@@ -1,0 +1,9 @@
+the bot will detect only those raids in the following format. you can achieve this by adding <tier>-<stage>-<attempt>
+in the first row manually. for the content I recommend using CorvidDallas' 'TT2 Raid Data Parser' which you can find
+here: https://tt2-raids.digitaltransience.com/ the used format is legacy. (do NOT remove the first line)
+
+1-2-3
+Rank,Player,ID,Attacks,On-Strat Damage
+1,Shadoof,ke43b73,24,10646103
+2,Ellenor Wolfpack,d5xn57p,24,10014911
+3,Fhaarkas,xb3gkb5,24,9442022
