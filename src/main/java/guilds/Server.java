@@ -90,9 +90,14 @@ public class Server {
         String content = message.getContentRaw();
         if(isRaid(content)) {
             if(!this.raids.containsRaid(getRaidName(content))) {
-                this.raids.add(this.createRaid(message));
+                Raid raid = this.createRaid(message);
+                this.raids.add(raid);
                 players = DatabaseHandler.getPlayers(this.guild);
                 PlayerList afks = getInactivePlayers();
+                sendMessage("You used " + (100-raid.getPotential()) + "% of your attacks.\n" +
+                        "Based on the average damage of " + raid.getDpa() + " per attack you could have beaten" +
+                        " the raid " + ((raid.getMaxAttacks()-raid.getFewestAttacks())%4 * 12) +
+                        "hours earlier, if everyone attacked " + raid.getFewestAttacks() + "times");
                 if(afks.isEmpty()) {
                     sendMessage("There are no players who missed attacks!");
                 } else {

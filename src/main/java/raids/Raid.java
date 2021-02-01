@@ -14,6 +14,9 @@ public class Raid {
     private final String name;
     private final String clanName;
     private final Date date;
+    private int maxAttacks;
+    private int totalDamage;
+    private int totalAttacks;
 
     public Raid(int tier, int stage, int tries, String clan, Date date){
         this.date = date;
@@ -22,6 +25,9 @@ public class Raid {
         this.tier = tier;
         this.stage = stage;
         this.tries = tries;
+        this.maxAttacks = 0;
+        this.totalAttacks = 0;
+        this.totalDamage = 0;
         this.name = tier + String.format("%02d", stage) + String.format("%02d", tries) + this.clanName.substring(0,5);
     }
 
@@ -39,6 +45,26 @@ public class Raid {
 
     public void addPlayer(Player player){
         players.add(player);
+        if(player.getAttacks() > maxAttacks) maxAttacks = player.getAttacks();
+        totalDamage+= player.getDamage();
+        totalAttacks+= player.getAttacks();
+    }
+
+    public int getMaxAttacks() {
+        return this.maxAttacks;
+    }
+
+    public int getTotalDamage() {
+        return this.totalDamage;
+    }
+
+    public int getTotalAttacks() {
+        return totalAttacks;
+    }
+
+    @SuppressWarnings("IntegerDivisionInFloatingPointContext")
+    public double getDpa(){
+        return totalDamage / totalAttacks;
     }
 
     public String toString(){
@@ -61,4 +87,21 @@ public class Raid {
         return this.players;
     }
 
+    public int getMissedAttacks() {
+        int missed = 0;
+        for(Player p: players) {
+            missed+= this.maxAttacks - p.getAttacks();
+        }
+        return missed;
+    }
+
+    public double getPotential() {
+        return (double) getMissedAttacks() / (this.maxAttacks * players.size());
+    }
+
+    public int getFewestAttacks() {
+        int neededAttacks = (int) (this.totalDamage / this.getDpa());
+
+        return neededAttacks / this.players.size();
+    }
 }
