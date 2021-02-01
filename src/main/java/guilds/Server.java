@@ -47,7 +47,7 @@ public class Server {
                     "Once you are done, use _!scan_. (you can rerun this command at any time if you missed any raids)");
         } else {
             logger.info("pulling data for SERVER '{}'", this.guild.getName());
-            raids = DatabaseHandler.getRaids();
+            raids = DatabaseHandler.getRaids(this.guild);
             players = DatabaseHandler.getPlayers(this.guild);
             if(raids.isEmpty()) {
                 this.sendMessage("I haven't found any raids yet, make sure they match the schema here:");
@@ -140,7 +140,7 @@ public class Server {
                 logger.info("starting scan for SERVER '{}'", guild.getName());
                 sendMessage("Starting my scan, this may take a while");
                 scanMessages();
-                raids = DatabaseHandler.getRaids();
+                raids = DatabaseHandler.getRaids(this.guild);
                 players = DatabaseHandler.getPlayers(this.guild);
                 sendMessage("Finished scanning, I found " + (raids.size()-amount) + " new raid(s).");
                 logger.info("scanned SERVER '{}' and found {} new RAIDS",

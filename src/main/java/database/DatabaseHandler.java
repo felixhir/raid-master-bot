@@ -14,18 +14,17 @@ import java.sql.*;
 @SuppressWarnings("SqlNoDataSourceInspection")
 public class DatabaseHandler extends Thread {
 
-    private final String DATABASE_USER;
-
     public static final Logger logger = LogManager.getLogger(DatabaseHandler.class);
-
-    public int timer;
     public static Connection connection;
 
-
+    /**
+     * On creation of this class a connection to the database specified through environment variables will be established.
+     * While writing this doc this seems to be really poor modularization and will be changed when I get to it.
+     * @throws SQLException If the used credentials do not grant access to login.
+     */
     public DatabaseHandler() throws SQLException {
         String DATABASE_NAME = System.getenv("DB_NAME");
-        this.DATABASE_USER = System.getenv("DB_USER");
-        timer = 1000;
+        String DATABASE_USER = System.getenv("DB_USER");
         logger.warn("connecting to db with user '{}'@'localhost'", DATABASE_USER);
         try {
             connection = DriverManager.getConnection("jdbc:mariadb://localhost/", DATABASE_USER, null);
@@ -39,7 +38,14 @@ public class DatabaseHandler extends Thread {
     }
 
 
-    public static boolean add(Player player) {
+    /**
+     * Allows to add a {@link Player} to the database. If the players unique id exists in the database already, the
+     * player will be updated instead.
+     * @param player A player from a {@link Raid} to be added to the database or used to update his current existence
+     *               (name, damage, attacks).
+     * @return True if the player was added or updated successfully. Otherwise returns false.
+     */
+    private static boolean add(Player player) {
         try {
             if(!containsPlayer(player)){
                 String statementString = "INSERT INTO players (id, name, totaldamage, totalattacks) VALUES ('" +
@@ -81,6 +87,14 @@ public class DatabaseHandler extends Thread {
         }
     }
 
+
+    /**
+     * Adds a {@link Raid} to the database. This will only work if the raids unique identifier, their name, is not
+     * saved within the database yet.
+     * @param raid The Raid that should be added to the database.
+     * @return True if the raid was added successfully. False if there was an error connecting to the database
+     * (also throws {@link SQLException}) or if the raid is already there.
+     */
     public static boolean add(Raid raid) {
         try {
             if (!containsRaid(raid)) {
@@ -99,6 +113,15 @@ public class DatabaseHandler extends Thread {
         }
     }
 
+
+    /**
+     * Adds the partaking of a {@link Player} in a {@link Raid} to the database. This will save their
+     * damage and attacks with reference to the player and the raid respectively. This method does not check
+     * for duplicates!
+     * @param raid The raid in the database to which the participation will be added.
+     * @param player The player whose statistics will be added to a raids participations.
+     * @return True if the participation was added successfully. Otherwise returns false.
+     */
     public static boolean add(Raid raid, Player player){
         add(player);
         String statementString = "INSERT INTO participations (attacks, damage, player_id, raid_id) VALUES(" +
@@ -106,6 +129,14 @@ public class DatabaseHandler extends Thread {
         return executeStatement(statementString);
     }
 
+
+    /**
+     * Checks if a certain {@link Raid} can be found inside of the database.
+     * This is done via the unique identifier of a raid, their name.
+     * @param raid The raid whose existence will be checked for.
+     * @return True if the raid already exists in the database, otherwise false.
+     * @throws SQLException Thrown if there was a problem to execute the query looking for raids.
+     */
     public static boolean containsRaid(Raid raid) throws SQLException {
         ResultSet resultSet = connection.createStatement().executeQuery("SELECT * FROM raids");
         while(resultSet.next()){
@@ -118,6 +149,13 @@ public class DatabaseHandler extends Thread {
         return false;
     }
 
+
+    /**
+     * Checks if a certain {@link Server} exists in the database. This is done via their (hopefully) unique name.
+     * @param server The server to be checked for.
+     * @return True if the database contains any raid mapped to the respective server.
+     * @throws SQLException Thrown if there was a problem to execute the query looking for raids.
+     */
     public static boolean containsServer(Server server) throws SQLException {
         ResultSet resultSet = connection.createStatement().executeQuery("SELECT clan_name FROM raids");
         while(resultSet.next()){
@@ -130,10 +168,19 @@ public class DatabaseHandler extends Thread {
         return false;
     }
 
-    public static RaidList getRaids(){
+
+    /**
+     * Pulls all the raids and their players of one {@link Server} from the database via the raids and participations table.
+     * The players will then be parsed into {@link Player} and added to a {@link PlayerList}.
+     * This list is then added to the respective {@link Raid} which in return is added to a {@link RaidList}.
+     * @param guild The guild of a server whose raids shall be pulled.
+     * @return A list of all raids including all players.
+     */
+    public static RaidList getRaids(Guild guild){
         RaidList list = new RaidList();
         try {
-            ResultSet raidSet = connection.createStatement().executeQuery("SELECT * FROM raids");
+            ResultSet raidSet = connection.createStatement().executeQuery(
+                    "SELECT * FROM raids WHERE clan_name='" + guild.getName() + "'");
             while (raidSet.next()) {
                 Raid raid = new Raid(raidSet.getInt("tier"),
                         raidSet.getInt("stage"),
@@ -167,6 +214,12 @@ public class DatabaseHandler extends Thread {
         }
     }
 
+
+    /**
+     * Pulls all the players of a {@link Server} from the database and totals them (damage and attacks) in one {@link PlayerList}.
+     * @param guild The reference to the server of which the players should be pulled.
+     * @return A list of all players totalling their damage and attacks from all participations.
+     */
     public static PlayerList getPlayers(Guild guild) {
         PlayerList list = new PlayerList();
         try {
@@ -191,6 +244,13 @@ public class DatabaseHandler extends Thread {
         }
     }
 
+
+    /**
+     * Checks if the database contains a certain {@link Player}. This is determined by checking for their unique id.
+     * @param player The player to be checked for.
+     * @return True if a player with the same id as the given player is found.
+     * @throws SQLException Thrown if there was a problem with the execution of the query looking for players.
+     */
     private static boolean containsPlayer(Player player) throws SQLException {
         ResultSet resultSet = connection.createStatement().executeQuery("SELECT id FROM players");
         while(resultSet.next()){
@@ -207,6 +267,12 @@ public class DatabaseHandler extends Thread {
         return false;
     }
 
+
+    /**
+     * Helper method to execute SQL statements more easily.
+     * @param sqlString The SQL command that is to be executed in form of a complete String.
+     * @return True if the command was executed successfully, otherwise false.
+     */
     private static boolean executeStatement(String sqlString){
         try {
             Statement statement = connection.createStatement();
@@ -219,6 +285,12 @@ public class DatabaseHandler extends Thread {
         }
     }
 
+
+    /**
+     * Updates a given {@link Player} in the database. This does not check if the player actually exists.
+     * @param player The player whose stats (name, attacks, damage) will be updated.
+     * @return True if the player was updated as expected, otherwise false.
+     */
     private static boolean updatePlayer(Player player) {
         try {
             String statementString = "UPDATE players SET name='" + player.getRealName() +
