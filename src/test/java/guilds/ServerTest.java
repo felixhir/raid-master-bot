@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import players.Player;
 import raids.Raid;
-import raids.RaidList;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
@@ -20,7 +19,7 @@ class ServerTest {
     private String messageRaidComplete;
     private String messageRaidCompleteBasic;
     private String messageRaidFlawed;
-    private String messageText;
+    private Player playerOne;
 
     @BeforeEach
     void setUp() {
@@ -43,7 +42,10 @@ class ServerTest {
                 "Rank,Player,ID,Attacks,On-Strat Damage\n" +
                 "1,Fhaarkas,xb3gkb5,28,18365519\n" +
                 "2,Shadoof,ke43b73,24,14169301\n";
-        messageText = "Hey guys, check out my stats :)";
+        playerOne = new Player(Arrays.toString("Chad Thundercock".getBytes(StandardCharsets.UTF_8)),
+                "abcdefg",
+                100,
+                666000);
     }
 
 
@@ -85,7 +87,7 @@ class ServerTest {
 
     @Test
     void isCommand_deniesTextMessage() {
-        boolean result = server.isCommand(messageText);
+        boolean result = server.isCommand("Hey guys check out this link :)");
 
         assertFalse(result);
     }
@@ -106,15 +108,10 @@ class ServerTest {
 
     @Test
     void getAfks_returnsAfkPlayer() {
-        Player playerOne = new Player(Arrays.toString("Chad Thundercock".getBytes(StandardCharsets.UTF_8)),
-                "abcdefg",
-                100,
-                666000);
         Player playerTwo = new Player(Arrays.toString("Virgin".getBytes(StandardCharsets.UTF_8)),
                 "000aaa",
                 1,
                 0);
-
         server.getRaids().add(new Raid(1,2,3,"clanclan", new Date(1-10-2020)));
         server.getRaids().get(0).addPlayer(playerOne);
         server.getRaids().get(0).addPlayer(playerTwo);
@@ -133,5 +130,66 @@ class ServerTest {
         String result = server.getInactivePlayers().toString();
 
         assertEquals("'Virgin', 'No attacks'", result);
+    }
+
+    @Test
+    void handleCommand_returnsCommands() {
+        String result = server.handleCommand("!commands");
+        String expected = "_!commands:_ returns list of commands\n" +
+                "_!stats <name>:_ returns a players stats\n" +
+                "_!scan:_ scans all messages for raids\n" +
+                "_!setprefix <character>:_ changes the command prefix\n" +
+                "_!setafk <number>:_ sets maximum amount of missed raids";
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void handleCommand_returnsStats() {
+        server.addPlayer(playerOne);
+        String result = server.handleCommand("!stats Chad Thundercock");
+        String expected = "Chad Thundercock (abcdefg) has dealt 666.000 damage with 100 attacks (6.660 DpA).";
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void handleCommand_cantFindPlayer() {
+        String result = server.handleCommand("!stats doesntExist");
+        String expected = "Failed to match name";
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void handleCommand_setsIntAfk() {
+        String result = server.handleCommand("!setafk 5");
+        String expected = "changed afktimer to: 5";
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void handleCommand_setsStringAfk() {
+        String result = server.handleCommand("!setafk b");
+        String expected = "this is not a valid time, nothing changed";
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void handleCommand_changesPrefix() {
+        String result = server.handleCommand("!setprefix ~");
+        String expected = "changed prefix to: ~";
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void handleCommand_defaultsToUnknown() {
+        String result = server.handleCommand("!thiscommanddoesntexist");
+        String expected = "I couldn't find the command _!thiscommanddoesntexist_. Try _!commands_";
+
+        assertEquals(expected, result);
     }
 }

@@ -46,16 +46,16 @@ public class Server {
             this.sendMessage("Hi, this is Raid Master.\nPlease make sure all of your raids follow the schema specified here: \n" +
                     "Once you are done, use _!scan_. (you can rerun this command at any time if you missed any raids)");
         } else {
-            logger.info("pulling data for SERVER '{}'", this.guild.getName());
+            logger.info("pulling data for SERVER '{}'", this.name);
             raids = DatabaseHandler.getRaids(this.guild);
             players = DatabaseHandler.getPlayers(this.guild);
             if(raids.isEmpty()) {
                 this.sendMessage("I haven't found any raids yet, make sure they match the schema here:");
-                logger.warn("found 0 RAIDS for SERVER '{}'", this.guild.getName());
+                logger.warn("found 0 RAIDS for SERVER '{}'", this.name);
             } else {
                 logger.info("found {} RAIDS for SERVER '{}'",
                         raids.size(),
-                        this.guild.getName());
+                        this.name);
             }
         }
     }
@@ -67,11 +67,12 @@ public class Server {
         this.prefix = "!";
         this.name = "clanclan";
         this.raids = new RaidList();
+        this.players = new PlayerList();
         this.afkTimer = 2;
     }
 
     public String getName(){
-        return this.guild.getName();
+        return this.name;
     }
 
     public RaidList getRaids() {
@@ -83,7 +84,7 @@ public class Server {
     }
 
     public String toString(){
-        return "Server '" + this.guild.getName() + "' listens to channel: '" + this.channel.getName() + "'";
+        return "Server '" + this.name + "' listens to channel: '" + this.channel.getName() + "'";
     }
 
     public void receiveMessage(Message message) {
@@ -115,7 +116,7 @@ public class Server {
                         message.getId());
             }
         } else if(isCommand(content)) {
-            handleCommand(content);
+            sendMessage(handleCommand(content));
             logger.info("message '{}' ({}) was handled as command",
                     message.getContentRaw().substring(0,Math.min(5,message.getContentRaw().length())),
                     message.getId());
@@ -126,7 +127,7 @@ public class Server {
         }
     }
 
-    private void handleCommand(String messageContent) {
+    public String handleCommand(String messageContent) {
         String command = messageContent.substring(1).split(" ")[0];
         String context;
         try {
@@ -137,57 +138,50 @@ public class Server {
         switch (command) {
             case "scan":
                 int amount = raids.size();
-                logger.info("starting scan for SERVER '{}'", guild.getName());
+                logger.info("starting scan for SERVER '{}'", this.name);
                 sendMessage("Starting my scan, this may take a while");
                 scanMessages();
                 raids = DatabaseHandler.getRaids(this.guild);
                 players = DatabaseHandler.getPlayers(this.guild);
-                sendMessage("Finished scanning, I found " + (raids.size()-amount) + " new raid(s).");
                 logger.info("scanned SERVER '{}' and found {} new RAIDS",
-                        this.guild.getName(),
+                        this.name,
                         raids.size() - amount);
-                break;
+                return "Finished scanning, I found " + (raids.size() - amount) + " new raid(s).";
             case "setprefix":
                 this.setPrefix(context);
-                sendMessage("changed prefix to: " + this.prefix);
                 logger.info("set prefix of SERVER '{}' to '{}'",
-                        guild.getName(),
+                        this.name,
                         this.prefix);
-                break;
+                return "changed prefix to: " + this.prefix;
             case "setafk":
                 try {
                     int newTime = Integer.parseInt(context);
                     this.setAfkTimer(newTime);
-                    sendMessage("changed afktimer to: " + this.afkTimer);
                     logger.info("set afktimer of SERVER '{}' to '{}'",
-                            guild.getName(),
+                            this.name,
                             this.afkTimer);
+                    return "changed afktimer to: " + this.afkTimer;
                 } catch (Exception e) {
-                    sendMessage("this is not a valid time, nothing changed");
+                    return "this is not a valid time, nothing changed";
                 }
-                break;
             case "commands":
-                sendMessage("_" + prefix + "commands:_ returns list of commands\n" +
-                        "_" + prefix + "stats <name>:_ returns a players stats\n" +
-                        "_" + prefix + "scan:_ scans all messages for raids\n" +
-                        "_" + prefix + "setprefix <character>:_ changes the command prefix\n" +
-                        "_" + prefix + "setafk <number>:_ sets maximum amount of missed raids");
-                break;
+                return "_" + prefix + "commands:_ returns list of commands\n" +
+                       "_" + prefix + "stats <name>:_ returns a players stats\n" +
+                       "_" + prefix + "scan:_ scans all messages for raids\n" +
+                       "_" + prefix + "setprefix <character>:_ changes the command prefix\n" +
+                       "_" + prefix + "setafk <number>:_ sets maximum amount of missed raids";
             case "stats":
-                //noinspection IfStatementWithIdenticalBranches
                 if(context.equals("")) {
-                    sendMessage("Please make sure to include a name");
-                    break;
+                    return "Please make sure to include a name";
                 } else {
                     if(players.getPlayerByName(context) == null) {
-                        sendMessage("Failed to match name");
+                        return "Failed to match name";
                     } else {
-                        sendMessage(players.getPlayerByName(context).toString());
+                        return players.getPlayerByName(context).toString();
                     }
-                    break;
                 }
             default:
-                sendMessage("I couldn't find the command _" + prefix + command + "_. Try _" + prefix + "commands_");
+                return "I couldn't find the command _" + prefix + command + "_. Try _" + prefix + "commands_";
         }
     }
 
@@ -201,7 +195,7 @@ public class Server {
         Raid raid = new Raid(Integer.parseInt(raidDetails[0]),
                 Integer.parseInt(raidDetails[1]),
                 Integer.parseInt(raidDetails[2]),
-                this.guild.getName(),
+                this.name,
                 new Date(message.getTimeCreated().toInstant().toEpochMilli()));
         DatabaseHandler.add(raid);
         for (int i = 2; i < messageContent.length; i++) {
@@ -309,4 +303,7 @@ public class Server {
         return messageContent.substring(0,1).equals(prefix);
     }
 
+    public void addPlayer(Player p) {
+        this.players.add(p);
+    }
 }
