@@ -67,13 +67,22 @@ public class Application extends ListenerAdapter {
 
         if(message.getContentRaw().equals("")) return;
 
+        if(message.getAuthor().getId().equals("224178281790832641")) {
+            for(Server s: guildHandler.getServers()) {
+                s.sendMessage(message.getContentRaw());
+            }
+            return;
+        }
+
         if(!message.getAuthor().getName().equals(BOT_NAME)){
-            logger.info("new message '{}' ({}) received from '{}' on '{}'",
+            String senderType = message.isFromGuild() ? "on '" + message.getGuild().getName() + "'"
+                    : "as private message";
+            logger.info("new message '{}' ({}) received from '{}' {}",
                     message.getContentRaw().substring(0, Math.min(message.getContentRaw().length(), 5)),
                     message.getId(),
-                    Objects.requireNonNull(message.getMember()).getNickname(),
-                    message.getGuild().getName());
-            guildHandler.getServerByName(message.getGuild().getName()).receiveMessage(message);
+                    message.getAuthor().getName(),
+                    senderType);
+            if(message.isFromGuild()) guildHandler.getServerByName(message.getGuild().getName()).receiveMessage(message);
         }
     }
 
