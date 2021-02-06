@@ -19,7 +19,6 @@ public class DatabaseHandler extends Thread {
 
     /**
      * On creation of this class a connection to the database specified through environment variables will be established.
-     * While writing this doc this seems to be really poor modularization and will be changed when I get to it.
      * @throws SQLException If the used credentials do not grant access to login.
      */
     public DatabaseHandler() throws SQLException {

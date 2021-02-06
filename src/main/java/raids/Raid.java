@@ -4,6 +4,7 @@ import players.Player;
 import players.PlayerList;
 
 import java.sql.Date;
+import java.text.DecimalFormat;
 
 public class Raid {
 
@@ -96,12 +97,21 @@ public class Raid {
     }
 
     public double getPotential() {
-        return (double) getMissedAttacks() / (this.maxAttacks * players.size());
+        return getMissedAttacks() / (this.maxAttacks * players.size() * 1.0) * 100;
     }
 
-    public int getFewestAttacks() {
+    public int getFewestAttacksNeeded() {
         int neededAttacks = (int) (this.totalDamage / this.getDpa());
 
         return neededAttacks / this.players.size();
+    }
+
+    public String factify() {
+        DecimalFormat df = new DecimalFormat("##.#");
+        int minAttacks = (int) (this.getTotalDamage() / (this.getDpa() * this.players.size()));
+        int timeSave = ((this.getMaxAttacks() - minAttacks) / 4) * 12;
+
+        return "You used " + df.format(100 - this.getPotential()) + "% of your attacks," +
+                " if everyone attacked " + minAttacks + " times you could have saved " + timeSave + " hours.";
     }
 }

@@ -97,10 +97,10 @@ public class Server {
                 PlayerList afks = getInactivePlayers();
                 sendMessage("You used " + (100-raid.getPotential()) + "% of your attacks.\n" +
                         "Based on the average damage of " + raid.getDpa() + " per attack you could have beaten" +
-                        " the raid " + ((raid.getMaxAttacks()-raid.getFewestAttacks())%4 * 12) +
-                        "hours earlier, if everyone attacked " + raid.getFewestAttacks() + "times");
+                        " the raid " + ((raid.getMaxAttacks()-raid.getFewestAttacksNeeded())%4 * 12) +
+                        "hours earlier, if everyone attacked " + raid.getFewestAttacksNeeded() + "times");
                 if(afks.isEmpty()) {
-                    sendMessage("There are no players who missed attacks!");
+                    sendMessage("There are no players who didn't attack at all!");
                 } else {
                     sendMessage("These players have not participated in the last " + afkTimer + " raids: " + afks);
                 }

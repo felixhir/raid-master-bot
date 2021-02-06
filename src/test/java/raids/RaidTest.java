@@ -155,8 +155,22 @@ class RaidTest {
     void fewestAttacks_returnsAttacks() {
         raid.addPlayer(player);
         raid.addPlayer(player2);
-        int result = raid.getFewestAttacks();
+        int result = raid.getFewestAttacksNeeded();
 
         assertEquals(11, result);
+    }
+
+    @Test
+    void factify_doesProperMath() {
+        raid.addPlayer(player2);
+        raid.addPlayer(new Player(Arrays.toString("yes".getBytes(StandardCharsets.UTF_8)),
+                "aah",
+                20,
+                500000));
+        String result = raid.factify();
+        String expected = "You used 75% of your attacks," +
+                " if everyone attacked 15 times you could have saved 12 hours.";
+
+        assertEquals(expected, result);
     }
 }
