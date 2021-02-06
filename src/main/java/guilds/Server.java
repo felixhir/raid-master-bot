@@ -23,7 +23,8 @@ import java.util.regex.Pattern;
 public class Server {
 
     private Guild guild;
-    private TextChannel channel;
+    private TextChannel raidChannel;
+    private TextChannel defaultChannel;
     private String name;
 
     private RaidList raids;
@@ -35,7 +36,12 @@ public class Server {
 
     public Server(Guild guild, boolean createdOnJoin) throws SQLException {
         this.guild = guild;
-        this.channel = determineTextChannel();
+        this.raidChannel = determineTextChannel();
+        try {
+            this.defaultChannel = guild.getDefaultChannel();
+        } catch (Exception ignored) {
+            logger.warn("There is no available default channel for SERVER '{}'", guild.getName());
+        }
         this.prefix = "!";
         this.afkTimer = 2;
         this.raids = new RaidList();
@@ -80,11 +86,13 @@ public class Server {
     }
 
     public void sendMessage(String message){
-        this.channel.sendMessage(message).queue();
+        if(this.defaultChannel != null) {
+            defaultChannel.sendMessage(message).queue();
+        }
     }
 
     public String toString(){
-        return "Server '" + this.name + "' listens to channel: '" + this.channel.getName() + "'";
+        return "Server '" + this.name + "' listens to channel: '" + this.raidChannel.getName() + "'";
     }
 
     public void receiveMessage(Message message) {
@@ -261,7 +269,7 @@ public class Server {
 
 
     private TextChannel determineTextChannel() {
-        TextChannel channel = this.guild.getDefaultChannel();
+        TextChannel channel = this.defaultChannel;
         for(TextChannel t: this.guild.getTextChannels()){
             if(t.getName().equals("raid-master")) {
                 channel = t;
@@ -273,8 +281,10 @@ public class Server {
 
 
     private void scanMessages() {
-        for (TextChannel c : this.guild.getTextChannels()) {
-            for (Message m : c.getIterableHistory()) {
+        int count = 0;
+        for (Message m : this.raidChannel.getIterableHistory()) {
+            int maxMessages = 600;
+            if (count++ < maxMessages) {
                 if (this.isRaid(m.getContentRaw())) {
                     if(!raids.containsRaid(getRaidName(m.getContentRaw()))) {
                         raids.add(createRaid(m));
@@ -284,6 +294,8 @@ public class Server {
                         m.addReaction("U+274C").queue();
                     }
                 }
+            } else {
+                break;
             }
         }
     }
