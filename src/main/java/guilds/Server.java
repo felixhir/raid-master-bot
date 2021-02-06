@@ -118,7 +118,6 @@ public class Server {
                         message.getContentRaw().substring(0,Math.min(5,message.getContentRaw().length())),
                         message.getId());
             } else {
-                message.addReaction("U+274C").queue();
                 logger.info("message '{}' ({}) was ignored as an existing raid",
                         message.getContentRaw().substring(0,Math.min(5,message.getContentRaw().length())),
                         message.getId());
@@ -291,7 +290,6 @@ public class Server {
                         m.addReaction("U+2705").queue();
                     } else {
                         logger.info("found a raid for more than one time (msg: {})", m.getId());
-                        m.addReaction("U+274C").queue();
                     }
                 }
             } else {

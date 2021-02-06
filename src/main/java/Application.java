@@ -1,5 +1,6 @@
 import database.DatabaseHandler;
 import guilds.GuildHandler;
+import guilds.Server;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -10,13 +11,11 @@ import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import guilds.Server;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.login.LoginException;
 import java.sql.SQLException;
-import java.util.Objects;
 
 
 /**
@@ -25,10 +24,11 @@ import java.util.Objects;
  */
 public class Application extends ListenerAdapter {
 
-
     private static final String CHANNEL_NAME = "raid-master";
     private static final String BOT_TOKEN = "RAID_MASTER_TOKEN";
     private static final String BOT_NAME = "Raid Master";
+
+    private static StatusUpdater runner;
 
     private static GuildHandler guildHandler;
     private static JDA jda;
@@ -37,7 +37,6 @@ public class Application extends ListenerAdapter {
     public static void main(String[] args) throws LoginException, InterruptedException, SQLException {
         logger.debug("starting {}", Application.class);
         String token = System.getenv(BOT_TOKEN);
-
         new DatabaseHandler();
         guildHandler = new GuildHandler();
 
@@ -48,8 +47,11 @@ public class Application extends ListenerAdapter {
         logger.debug("initialization of variables in {} finished", Application.class);
 
         jda.awaitReady();
+        runner = new StatusUpdater(jda);
+        runner.run();
 
         setupBot();
+
 
     }
 
@@ -63,6 +65,7 @@ public class Application extends ListenerAdapter {
      */
     @Override
     public void onMessageReceived(MessageReceivedEvent event){
+        runner.addMessage();
         Message message = event.getMessage();
 
         if(message.getContentRaw().equals("")) return;
@@ -71,7 +74,6 @@ public class Application extends ListenerAdapter {
             for(Server s: guildHandler.getServers()) {
                 s.sendMessage(message.getContentRaw());
             }
-            return;
         }
 
         if(!message.getAuthor().getName().equals(BOT_NAME)){
@@ -103,6 +105,7 @@ public class Application extends ListenerAdapter {
         try {
             guildHandler.addServer(new Server(guild, true));
         } catch (SQLException exception) {
+            runner.addException();
             exception.printStackTrace();
         }
     }
@@ -117,6 +120,7 @@ public class Application extends ListenerAdapter {
         if(n > guildHandler.getServers().size()) {
             logger.debug("removed '{}' from the {} successfully", guild.getName(), guildHandler.getClass());
         } else {
+            runner.addException();
             logger.warn("could not properly remove '{}' from {}", guild.getName(), guildHandler.getClass());
         }
     }
