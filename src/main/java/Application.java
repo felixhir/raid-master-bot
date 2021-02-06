@@ -1,5 +1,4 @@
 import database.DatabaseHandler;
-import guilds.GuildHandler;
 import guilds.Server;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -16,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.login.LoginException;
 import java.sql.SQLException;
+import java.util.LinkedList;
 
 
 /**
@@ -29,16 +29,16 @@ public class Application extends ListenerAdapter {
     private static final String BOT_NAME = "Raid Master";
 
     private static StatusUpdater runner;
-
-    private static GuildHandler guildHandler;
     private static JDA jda;
+    private static LinkedList<Server> servers;
+
     public static final Logger logger = LogManager.getLogger(Application.class);
 
     public static void main(String[] args) throws LoginException, InterruptedException, SQLException {
         logger.debug("starting {}", Application.class);
         String token = System.getenv(BOT_TOKEN);
         new DatabaseHandler();
-        guildHandler = new GuildHandler();
+        servers = new LinkedList<>();
 
         JDABuilder builder = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(), new Application());
         builder.setActivity(Activity.listening(CHANNEL_NAME + " or general"));
@@ -71,7 +71,7 @@ public class Application extends ListenerAdapter {
         if(message.getContentRaw().equals("")) return;
 
         if(message.getAuthor().getId().equals("224178281790832641")) {
-            for(Server s: guildHandler.getServers()) {
+            for(Server s: servers) {
                 s.sendMessage(message.getContentRaw());
             }
         }
@@ -84,7 +84,13 @@ public class Application extends ListenerAdapter {
                     message.getId(),
                     message.getAuthor().getName(),
                     senderType);
-            if(message.isFromGuild()) guildHandler.getServerByName(message.getGuild().getName()).receiveMessage(message);
+            if(message.isFromGuild()) {
+                for(Server server: servers) {
+                    if(message.getGuild().getName().equals(server.getName())) {
+                        server.receiveMessage(message);
+                    }
+                }
+            }
         }
     }
 
@@ -103,7 +109,7 @@ public class Application extends ListenerAdapter {
         logger.debug("the channel '{}' will be used as default for {}", channel.getName(), guild.getName());
 
         try {
-            guildHandler.addServer(new Server(guild, true));
+            servers.add(new Server(guild, true));
         } catch (SQLException exception) {
             runner.addException();
             exception.printStackTrace();
@@ -116,23 +122,18 @@ public class Application extends ListenerAdapter {
         logger.info("the server '{}' just removed the bot", event.getGuild().getName());
 
         Guild guild = event.getGuild();
-        int n = guildHandler.getServers().size();
-        if(n > guildHandler.getServers().size()) {
-            logger.debug("removed '{}' from the {} successfully", guild.getName(), guildHandler.getClass());
-        } else {
-            runner.addException();
-            logger.warn("could not properly remove '{}' from {}", guild.getName(), guildHandler.getClass());
-        }
+        servers.removeIf(server -> server.getName().equals(guild.getName()));
+        logger.info("removed '{}' from the serverlist successfully", guild.getName());
     }
 
     public static void setupBot() throws SQLException {
         for(Guild g: jda.getGuilds()){
-            guildHandler.addServer(new Server(g, false));
+            servers.add(new Server(g, false));
         }
-        if(guildHandler.getServers().isEmpty()) {
+        if(servers.isEmpty()) {
             logger.warn("the bot is not connected to any application despite the API running");
         } else {
-            logger.info("the bot is connected to {} server(s)", guildHandler.getServers().size());
+            logger.info("the bot is connected to {} server(s)", servers.size());
         }
     }
 }

@@ -146,7 +146,7 @@ class RaidTest {
         raid.addPlayer(player2);
         raid.addPlayer(player);
         double result = raid.getPotential();
-        double expected = 2.0/24;
+        double expected = 2.0/24*100;
 
         assertEquals(expected, result);
     }
