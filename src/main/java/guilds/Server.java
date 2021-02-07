@@ -54,7 +54,7 @@ public class Server {
 
 
         if(createdOnJoin) {
-            this.sendMessage("Hi, this is Raid Master.\nPlease make sure all of your raids follow the schema specified here: https://github.com/felixhir/raid-master-bot/blob/main/RaidTemplate\n" +
+            this.sendMessage("Hi, this is Raid Master (BETA).\nPlease make sure all of your raids follow the schema specified here: https://github.com/felixhir/raid-master-bot/blob/main/RaidTemplate\n" +
                     "Once you are done, use _!scan_. (you can rerun this command at any time if you missed any raids)");
         } else {
             logger.info("pulling data for SERVER '{}'", this.name);
@@ -285,7 +285,8 @@ public class Server {
 
     private void scanMessages() {
         int count = 0;
-        for (Message m : this.raidChannel.getIterableHistory()) {
+        TextChannel channel = (this.raidChannel != null) ? this.raidChannel : defaultChannel;
+        for (Message m : channel.getIterableHistory()) {
             int maxMessages = 600;
             if (count++ < maxMessages) {
                 if (this.isRaid(m.getContentRaw())) {
