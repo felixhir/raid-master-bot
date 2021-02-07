@@ -37,26 +37,30 @@ public class Server {
     public Server(Guild guild, boolean createdOnJoin) throws SQLException {
         this.guild = guild;
         this.raidChannel = determineTextChannel();
-        try {
-            this.defaultChannel = guild.getDefaultChannel();
-        } catch (Exception ignored) {
-            logger.warn("There is no available default channel for SERVER '{}'", guild.getName());
-        }
         this.prefix = "!";
         this.afkTimer = 2;
         this.raids = new RaidList();
         this.players = new PlayerList();
         this.name = guild.getName();
 
+        for(TextChannel channel: guild.getTextChannels()) {
+            if(channel.canTalk()) {
+                this.defaultChannel = channel;
+                break;
+            }
+            logger.warn("There is no available default channel for SERVER '{}'", guild.getName());
+            this.defaultChannel = null;
+        }
+
+
         if(createdOnJoin) {
-            this.sendMessage("Hi, this is Raid Master.\nPlease make sure all of your raids follow the schema specified here: \n" +
+            this.sendMessage("Hi, this is Raid Master.\nPlease make sure all of your raids follow the schema specified here: https://github.com/felixhir/raid-master-bot/blob/main/RaidTemplate\n" +
                     "Once you are done, use _!scan_. (you can rerun this command at any time if you missed any raids)");
         } else {
             logger.info("pulling data for SERVER '{}'", this.name);
             raids = DatabaseHandler.getRaids(this.guild);
             players = DatabaseHandler.getPlayers(this.guild);
             if(raids.isEmpty()) {
-                this.sendMessage("I haven't found any raids yet, make sure they match the schema here:");
                 logger.warn("found 0 RAIDS for SERVER '{}'", this.name);
             } else {
                 logger.info("found {} RAIDS for SERVER '{}'",

@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 
 public class StatusUpdater implements Runnable{
 
-    private final JDA jda;
+    private JDA jda;
     private static int exceptionAmount;
     private static int messageAmount;
 
@@ -14,8 +14,7 @@ public class StatusUpdater implements Runnable{
 
     public static final Logger logger = LogManager.getLogger(Application.class);
 
-    public StatusUpdater(JDA jda) {
-        this.jda = jda;
+    public StatusUpdater() {
         messageAmount = 0;
         exceptionAmount = 0;
         UPDATE_DELAY = 28800000;
@@ -49,5 +48,9 @@ public class StatusUpdater implements Runnable{
 
     public static void addMessage() {
         messageAmount++;
+    }
+
+    public void setJda(JDA jda) {
+        this.jda = jda;
     }
 }

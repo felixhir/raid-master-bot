@@ -22,7 +22,7 @@ import java.util.LinkedList;
 
 /**
  * @author felixhir
- * @version 1.0 (PRE-RELEASE)
+ * @version 1.0 BETA-RELEASE
  */
 public class Application extends ListenerAdapter {
 
@@ -35,11 +35,11 @@ public class Application extends ListenerAdapter {
 
     public static final Logger logger = LogManager.getLogger(Application.class);
 
-    public static void main(String[] args) throws InterruptedException, SQLException {
+    public static void main(String[] args) throws InterruptedException, SQLException, LoginException {
         logger.debug("starting {}", Application.class);
 
         String token = System.getenv(BOT_TOKEN);
-        StatusUpdater runner = new StatusUpdater(jda);
+        StatusUpdater runner = new StatusUpdater();
         JDABuilder builder = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(), new Application());
         builder.setActivity(Activity.listening(CHANNEL_NAME + " or general"));
         servers = new LinkedList<>();
@@ -49,9 +49,12 @@ public class Application extends ListenerAdapter {
         if(DatabaseHandler.setupDatabaseConnection(System.getenv("DB_USER"),null)) {
             DatabaseHandler.setSchema(System.getenv("DB_NAME"));
 
+            jda = builder.build();
             jda.awaitReady();
-            runner.run();
+            runner.setJda(jda);
+
             setupBot();
+            //runner.run();
         }
     }
 
@@ -70,12 +73,6 @@ public class Application extends ListenerAdapter {
 
         if(message.getContentRaw().equals("")) return;
 
-        if(message.getAuthor().getId().equals("224178281790832641")) {
-            for(Server s: servers) {
-                s.sendMessage(message.getContentRaw());
-            }
-        }
-
         if(!message.getAuthor().getName().equals(BOT_NAME)){
             String senderType = message.isFromGuild() ? "on '" + message.getGuild().getName() + "'"
                     : "as private message";
@@ -90,6 +87,13 @@ public class Application extends ListenerAdapter {
                         server.receiveMessage(message);
                     }
                 }
+                return;
+            }
+        }
+
+        if(message.getAuthor().getId().equals("224178281790832641")) {
+            for(Server s: servers) {
+                s.sendMessage(message.getContentRaw());
             }
         }
     }
