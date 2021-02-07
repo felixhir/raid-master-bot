@@ -1,3 +1,5 @@
+package runtime;
+
 import net.dv8tion.jda.api.JDA;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -5,8 +7,8 @@ import org.apache.logging.log4j.Logger;
 public class StatusUpdater implements Runnable{
 
     private final JDA jda;
-    private int exceptionAmount;
-    private int messageAmount;
+    private static int exceptionAmount;
+    private static int messageAmount;
 
     private final int UPDATE_DELAY;
 
@@ -14,8 +16,8 @@ public class StatusUpdater implements Runnable{
 
     public StatusUpdater(JDA jda) {
         this.jda = jda;
-        this.messageAmount = 0;
-        this.exceptionAmount = 0;
+        messageAmount = 0;
+        exceptionAmount = 0;
         UPDATE_DELAY = 28800000;
     }
 
@@ -24,13 +26,11 @@ public class StatusUpdater implements Runnable{
     public void run(){
         String status;
         while(true) {
-            status = "--------------------" +
-                    "\nStatus <JDA>: " + jda.getStatus() +
-                    "\nStatus <DB>: " + "DatabaseHandler.getStatus()" +
-                    "\nAmount <SERVERS>: " + jda.getGuilds().size() +
-                    "\nAmount <EXCEPTIONS>: " + exceptionAmount +
-                    "\nAmount <MESSAGES>: " + messageAmount +
-                    "\n--------------------";
+            status = "Status <JDA>: " + jda.getStatus() +
+                    " Status <DB>: " + "DatabaseHandler.getStatus()" +
+                    " Amount <SERVERS>: " + jda.getGuilds().size() +
+                    " Amount <EXCEPTIONS>: " + exceptionAmount +
+                    " Amount <MESSAGES>: " + messageAmount;
             exceptionAmount = 0;
             messageAmount = 0;
             logger.info(status);
@@ -43,11 +43,11 @@ public class StatusUpdater implements Runnable{
         }
     }
 
-    public void addException() {
-        this.exceptionAmount++;
+    public static void addException() {
+        exceptionAmount++;
     }
 
-    public void addMessage() {
-        this.messageAmount++;
+    public static void addMessage() {
+        messageAmount++;
     }
 }

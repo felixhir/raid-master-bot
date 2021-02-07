@@ -8,49 +8,78 @@ import players.Player;
 import players.PlayerList;
 import raids.Raid;
 import raids.RaidList;
+import runtime.StatusUpdater;
 
 import java.sql.*;
 
 @SuppressWarnings("SqlNoDataSourceInspection")
-public class DatabaseHandler extends Thread {
+public class DatabaseHandler {
 
     public static final Logger logger = LogManager.getLogger(DatabaseHandler.class);
     public static Connection connection;
 
+
     /**
-     * On creation of this class a connection to the database specified through environment variables will be established.
-     * @throws SQLException If the used credentials do not grant access to login.
+     * Connects to the local database instance as a given user.
+     * @param userName The name of the user saved in the database
+     * @param password The password of the respective user, if they don't have one, set 'null'
+     * @return True if the connection to the DB-server has been established successfully, otherwise false.
      */
-    public DatabaseHandler() throws SQLException {
-        String DATABASE_NAME = System.getenv("DB_NAME");
-        String DATABASE_USER = System.getenv("DB_USER");
-        logger.warn("connecting to db with user '{}'@'localhost'", DATABASE_USER);
+    public static boolean setupDatabaseConnection(String userName, String password) {
+        logger.warn("connecting to db as '{}'@localhost...",
+                userName);
         try {
-            connection = DriverManager.getConnection("jdbc:mariadb://localhost/", DATABASE_USER, null);
-            logger.info("successfully established a connection");
+            connection = DriverManager.getConnection("jdbc:mariadb://localhost/", userName, password);
+            logger.info("connected to db !");
+            return true;
         } catch (SQLException exception) {
-            logger.error("failed to connect to database <{}> {}",
+            connection = null;
+            logger.error("failed connecting to db <{}> {}",
                     exception.getMessage(),
                     exception.getStackTrace());
+            StatusUpdater.addException();
+            return false;
         }
-        connection.createStatement().execute("USE " + DATABASE_NAME);
     }
 
+    /**
+     * Chooses a given schema from the database that was connected to before
+     * @param schemaName Name of the schema
+     */
+    public static boolean setSchema(String schemaName) {
+        logger.warn("setting schema for database to: '{}'", schemaName);
+        if (connection == null) {
+            logger.warn("there is no established connection!");
+            StatusUpdater.addException();
+            return false;
+        }
+        try {
+            connection.createStatement().execute("USE " + schemaName);
+            logger.info("successfully set to schema '{}'", schemaName);
+            return true;
+        } catch (SQLException exception) {
+            logger.error("failed setting db to schema '{}' <{}> {}",
+                    schemaName,
+                    exception.getMessage(),
+                    exception.getStackTrace());
+            StatusUpdater.addException();
+            return false;
+        }
+    }
 
     /**
      * Allows to add a {@link Player} to the database. If the players unique id exists in the database already, the
      * player will be updated instead.
      * @param player A player from a {@link Raid} to be added to the database or used to update his current existence
      *               (name, damage, attacks).
-     * @return True if the player was added or updated successfully. Otherwise returns false.
      */
-    private static boolean add(Player player) {
+    private static void add(Player player) {
         try {
             if(!containsPlayer(player)){
                 String statementString = "INSERT INTO players (id, name, totaldamage, totalattacks) VALUES ('" +
                         player.getId() + "', '" + player.getByteName() + "', " + player.getDamage() + ", " + player.getAttacks() + ");";
                 logger.debug("created new PLAYER '{}'", player.getRealName());
-                return executeStatement(statementString);
+                executeStatement(statementString);
             } else {
                 logger.info("PLAYER '{}' ({}) already exists in db, updating them",
                         player.getRealName(),
@@ -68,21 +97,19 @@ public class DatabaseHandler extends Thread {
                     logger.debug("updated PLAYER '{}' ({})",
                             existingPlayer.getRealName(),
                             existingPlayer.getId());
-                    return true;
                 } else {
                     logger.warn("failed to update PLAYER '{}' ({})",
                             existingPlayer.getRealName(),
                             existingPlayer.getId());
-                    return false;
                 }
             }
         } catch (SQLException exception){
+            StatusUpdater.addException();
             logger.error("could not check for PLAYER '{}' ({}) in db, nothing was altered ~source~ {}: {}",
                     player.getRealName(),
                     player.getId(),
                     exception.getMessage(),
                     exception.getStackTrace());
-            return false;
         }
     }
 
@@ -91,24 +118,21 @@ public class DatabaseHandler extends Thread {
      * Adds a {@link Raid} to the database. This will only work if the raids unique identifier, their name, is not
      * saved within the database yet.
      * @param raid The Raid that should be added to the database.
-     * @return True if the raid was added successfully. False if there was an error connecting to the database
-     * (also throws {@link SQLException}) or if the raid is already there.
      */
-    public static boolean add(Raid raid) {
+    public static void add(Raid raid) {
         try {
             if (!containsRaid(raid)) {
                 String statementString = "INSERT INTO raids (date, tier, stage, attempt, raid_name, clan_name) VALUES('" +
                         raid.getDate() + "', " + raid.getTier() + ", " + raid.getStage() + ", " + raid.getTries() + ", '" +
                         raid.getName() + "', '" + raid.getClanName() + "');";
                 logger.info("added RAID '{}' to db", raid.getName());
-                return executeStatement(statementString);
+                executeStatement(statementString);
             } else {
                 logger.info("RAID '{}' already exists in db, nothing was added", raid.getName());
-                return false;
             }
         } catch (SQLException exception){
+            StatusUpdater.addException();
             logger.error("could not check for raid: '{}' in db, nothing was added", raid.getName());
-            return false;
         }
     }
 
@@ -206,6 +230,7 @@ public class DatabaseHandler extends Thread {
             logger.debug("found {} RAIDS in DB", list.size());
             return list;
         } catch (SQLException exception) {
+            StatusUpdater.addException();
             logger.debug("could not fetch raids from db <{}> {}",
                     exception.getMessage(),
                     exception.getStackTrace());
@@ -236,6 +261,7 @@ public class DatabaseHandler extends Thread {
             logger.debug("created new PLAYERLIST with size {}", list.size());
             return list;
         } catch (SQLException exception) {
+            StatusUpdater.addException();
             logger.error("failed fetching PLAYERS from db <{}> {}",
                     exception.getMessage(),
                     exception.getStackTrace());
@@ -272,13 +298,14 @@ public class DatabaseHandler extends Thread {
      * @param sqlString The SQL command that is to be executed in form of a complete String.
      * @return True if the command was executed successfully, otherwise false.
      */
-    private static boolean executeStatement(String sqlString){
+    public static boolean executeStatement(String sqlString){
         try {
             Statement statement = connection.createStatement();
             statement.execute(sqlString);
             logger.debug("successfully executed '{}'", sqlString);
             return true;
         } catch (SQLException exception) {
+            StatusUpdater.addException();
             logger.error("trouble executing '{}'; fault: {}: {}", sqlString, exception.getMessage(), exception.getStackTrace());
             return false;
         }
@@ -299,6 +326,7 @@ public class DatabaseHandler extends Thread {
             System.out.println(statementString);
             return true;
         } catch (SQLException exception) {
+            StatusUpdater.addException();
             logger.debug("failed updating PLAYER '{}' ({}), ~source~ {}",
                     player.getRealName(),
                     player.getId(),

@@ -1,3 +1,5 @@
+package runtime;
+
 import database.DatabaseHandler;
 import guilds.Server;
 import net.dv8tion.jda.api.JDA;
@@ -28,31 +30,29 @@ public class Application extends ListenerAdapter {
     private static final String BOT_TOKEN = "RAID_MASTER_TOKEN";
     private static final String BOT_NAME = "Raid Master";
 
-    private static StatusUpdater runner;
     private static JDA jda;
     private static LinkedList<Server> servers;
 
     public static final Logger logger = LogManager.getLogger(Application.class);
 
-    public static void main(String[] args) throws LoginException, InterruptedException, SQLException {
+    public static void main(String[] args) throws InterruptedException, SQLException {
         logger.debug("starting {}", Application.class);
-        String token = System.getenv(BOT_TOKEN);
-        new DatabaseHandler();
-        servers = new LinkedList<>();
 
+        String token = System.getenv(BOT_TOKEN);
+        StatusUpdater runner = new StatusUpdater(jda);
         JDABuilder builder = JDABuilder.createDefault(token).addEventListeners(new ReadyListener(), new Application());
         builder.setActivity(Activity.listening(CHANNEL_NAME + " or general"));
-        jda = builder.build();
+        servers = new LinkedList<>();
 
-        logger.debug("initialization of variables in {} finished", Application.class);
+        logger.debug("initialization of variables in {} finished, setting connections...", Application.class);
 
-        jda.awaitReady();
-        runner = new StatusUpdater(jda);
-        runner.run();
+        if(DatabaseHandler.setupDatabaseConnection(System.getenv("DB_USER"),null)) {
+            DatabaseHandler.setSchema(System.getenv("DB_NAME"));
 
-        setupBot();
-
-
+            jda.awaitReady();
+            runner.run();
+            setupBot();
+        }
     }
 
 
@@ -65,7 +65,7 @@ public class Application extends ListenerAdapter {
      */
     @Override
     public void onMessageReceived(MessageReceivedEvent event){
-        runner.addMessage();
+        StatusUpdater.addMessage();
         Message message = event.getMessage();
 
         if(message.getContentRaw().equals("")) return;
@@ -111,7 +111,7 @@ public class Application extends ListenerAdapter {
         try {
             servers.add(new Server(guild, true));
         } catch (SQLException exception) {
-            runner.addException();
+            StatusUpdater.addException();
             exception.printStackTrace();
         }
     }

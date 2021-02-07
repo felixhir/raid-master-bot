@@ -62,4 +62,11 @@ class PlayerTest {
         assertEquals(expected1, result1);
         assertEquals(expected2, result2);
     }
+
+    @Test
+    void getDpa_defaultsToZero() {
+        double result = new Player(Arrays.toString("abc".getBytes(StandardCharsets.UTF_8)), "abcdef", 0, 0).getDpa();
+
+        assertEquals(0 ,result);
+    }
 }
