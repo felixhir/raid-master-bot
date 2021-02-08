@@ -248,10 +248,12 @@ public class DatabaseHandler {
      */
     public static PlayerList getPlayers(Guild guild) {
         PlayerList list = new PlayerList();
+        String name = guild.getName().length() < 5 ?
+                (guild.getName() + "aaaa").substring(0,5) : guild.getName();
         try {
             String sqlString = "SELECT name, damage, id, attacks FROM players AS players INNER JOIN participations AS participations ON " +
                     "players.id=participations.player_id INNER JOIN raids AS raids ON raids.raid_name = participations.raid_id WHERE raids.clan_name='" +
-                    guild.getName() + "'";
+                    name + "'";
             ResultSet playerSet = connection.createStatement().executeQuery(sqlString);
             while(playerSet.next()) {
                 Player player = new Player(playerSet.getString("name"),
