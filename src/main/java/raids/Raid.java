@@ -29,7 +29,7 @@ public class Raid {
         this.maxAttacks = 0;
         this.totalAttacks = 0;
         this.totalDamage = 0;
-        this.name = tier + String.format("%02d", stage) + String.format("%02d", tries) + this.clanName.substring(0,5);
+        this.name = tier + String.format("%02d", stage) + String.format("%02d", tries);
     }
 
     public String getName() {

@@ -83,7 +83,7 @@ class RaidListTest {
         raids.add(testRaid);
         raids.add(testRaidTwo);
         String result = raids.toString();
-        String expected = "List contains: '10101test_', '20202test_'";
+        String expected = "List contains: '10101', '20202'";
 
         assertEquals(expected, result);
     }

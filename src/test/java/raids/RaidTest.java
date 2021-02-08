@@ -34,7 +34,7 @@ class RaidTest {
     @Test
     public void getName_returnRaidName() {
         String result = raid.getName();
-        assertEquals("20401Test ", result);
+        assertEquals("20401", result);
     }
 
     @Test

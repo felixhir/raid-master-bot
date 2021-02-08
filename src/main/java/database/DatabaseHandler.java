@@ -122,9 +122,9 @@ public class DatabaseHandler {
     public static void add(Raid raid) {
         try {
             if (!containsRaid(raid)) {
-                String statementString = "INSERT INTO raids (date, tier, stage, attempt, raid_name, clan_name) VALUES('" +
+                String statementString = "INSERT INTO raids (date, tier, stage, attempt, clan_name) VALUES('" +
                         raid.getDate() + "', " + raid.getTier() + ", " + raid.getStage() + ", " + raid.getTries() + ", '" +
-                        raid.getName() + "', '" + raid.getClanName() + "');";
+                        raid.getClanName() + "');";
                 logger.info("added RAID '{}' to db", raid.getName());
                 executeStatement(statementString);
             } else {
@@ -147,8 +147,21 @@ public class DatabaseHandler {
      */
     public static boolean add(Raid raid, Player player){
         add(player);
+        int id = 0;
+        try {
+            ResultSet raids = connection.createStatement().executeQuery("SELECT id FROM raids");
+            while (raids.next()) {
+                id = raids.getInt("id");
+            }
+        } catch (SQLException exception) {
+            logger.error("failed getting raid id <{}> {}",
+                    exception.getMessage(),
+                    exception.getStackTrace());
+            return false;
+        }
+
         String statementString = "INSERT INTO participations (attacks, damage, player_id, raid_id) VALUES(" +
-                player.getAttacks() + ", " + player.getDamage() + ", '" + player.getId() + "', '" + raid.getName() + "');";
+                player.getAttacks() + ", " + player.getDamage() + ", '" + player.getId() + "', '" + id + "');";
         return executeStatement(statementString);
     }
 
@@ -163,7 +176,10 @@ public class DatabaseHandler {
     public static boolean containsRaid(Raid raid) throws SQLException {
         ResultSet resultSet = connection.createStatement().executeQuery("SELECT * FROM raids");
         while(resultSet.next()){
-            if(resultSet.getString("raid_name").equals(raid.getName())){
+            if(resultSet.getString("clan_name").equals(raid.getClanName()) &&
+            resultSet.getInt("tier") == raid.getTier() &&
+            resultSet.getInt("stage") == raid.getStage() &&
+            resultSet.getInt("attempt") == raid.getTries()){
                 logger.debug("found RAID '{}' in db", raid.getName());
                 return true;
             }
@@ -180,9 +196,9 @@ public class DatabaseHandler {
      * @throws SQLException Thrown if there was a problem to execute the query looking for raids.
      */
     public static boolean containsServer(Server server) throws SQLException {
-        ResultSet resultSet = connection.createStatement().executeQuery("SELECT clan_name FROM raids");
+        ResultSet resultSet = connection.createStatement().executeQuery("SELECT name FROM servers");
         while(resultSet.next()){
-            if(resultSet.getString("clan_name").equals(server.getName())){
+            if(resultSet.getString("name").equals(server.getName())){
                 logger.debug("found SERVER '{}' in db", server.getName());
                 return true;
             }
@@ -201,11 +217,9 @@ public class DatabaseHandler {
      */
     public static RaidList getRaids(Guild guild){
         RaidList list = new RaidList();
-        String name = guild.getName().length() < 5 ?
-                (guild.getName() + "aaaa").substring(0,5) : guild.getName();
         try {
             ResultSet raidSet = connection.createStatement().executeQuery(
-                    "SELECT * FROM raids WHERE clan_name='" + name + "'");
+                    "SELECT * FROM raids WHERE clan_name='" + guild.getName() + "'");
             while (raidSet.next()) {
                 Raid raid = new Raid(raidSet.getInt("tier"),
                         raidSet.getInt("stage"),
@@ -213,8 +227,8 @@ public class DatabaseHandler {
                         raidSet.getString("clan_name"),
                         raidSet.getDate("date"));
                 list.add(raid);
-                String sqlString = "SELECT name, damage, id, attacks FROM players AS players INNER JOIN participations AS participations ON " +
-                        "players.id=participations.player_id INNER JOIN raids AS raids ON raids.raid_name = participations.raid_id WHERE raids.raid_name='" +
+                String sqlString = "SELECT name, damage, players.id, attacks FROM players INNER JOIN participations ON " +
+                        "players.id=participations.player_id INNER JOIN raids ON raids.id = participations.raid_id WHERE raids.id='" +
                         raid.getName() + "'";
                 ResultSet playerSet = connection.createStatement().executeQuery(sqlString);
                 while (playerSet.next()){
@@ -248,12 +262,10 @@ public class DatabaseHandler {
      */
     public static PlayerList getPlayers(Guild guild) {
         PlayerList list = new PlayerList();
-        String name = guild.getName().length() < 5 ?
-                (guild.getName() + "aaaa").substring(0,5) : guild.getName();
         try {
-            String sqlString = "SELECT name, damage, id, attacks FROM players AS players INNER JOIN participations AS participations ON " +
-                    "players.id=participations.player_id INNER JOIN raids AS raids ON raids.raid_name = participations.raid_id WHERE raids.clan_name='" +
-                    name + "'";
+            String sqlString = "SELECT name, damage, players.id, attacks FROM players INNER JOIN participations ON " +
+                    "players.id=participations.player_id INNER JOIN raids ON raids.id = participations.raid_id WHERE raids.clan_name='" +
+                    guild.getName() + "'";
             ResultSet playerSet = connection.createStatement().executeQuery(sqlString);
             while(playerSet.next()) {
                 Player player = new Player(playerSet.getString("name"),
@@ -298,6 +310,28 @@ public class DatabaseHandler {
 
 
     /**
+     * Adds a {@link Server} with their name, current prefix and server to the database.
+     * @param server The server to be added.
+     * @return True if the server was added successfully, otherwise false.
+     */
+    public static boolean add(Server server) {
+        String sqlString = "INSERT INTO servers (name, prefix, afktimer) VALUES('" + server.getName() +
+                "', '" + server.getPrefix() + "', " + server.getAfktimer() + ")";
+        try {
+            connection.createStatement().execute(sqlString);
+            logger.info("added SERVER '{}' to DB", server.getName());
+            return true;
+        } catch (SQLException exception) {
+            logger.error("failed to add SERVER '{}' to DB <{}> {}",
+                    server.getName(),
+                    exception.getMessage(),
+                    exception.getStackTrace());
+            return false;
+        }
+    }
+
+
+    /**
      * Helper method to execute SQL statements more easily.
      * @param sqlString The SQL command that is to be executed in form of a complete String.
      * @return True if the command was executed successfully, otherwise false.
@@ -322,21 +356,16 @@ public class DatabaseHandler {
      * @return True if the player was updated as expected, otherwise false.
      */
     private static boolean updatePlayer(Player player) {
-        try {
-            String statementString = "UPDATE players SET name='" + player.getRealName() +
-                    "', totalattacks=" + player.getAttacks() + ", totaldamage=" +
-                    player.getDamage() + " WHERE id='" + player.getId() + "'";
-            connection.createStatement().execute(statementString);
-            System.out.println(statementString);
-            return true;
-        } catch (SQLException exception) {
-            StatusUpdater.addException();
-            logger.debug("failed updating PLAYER '{}' ({}), ~source~ {}",
-                    player.getRealName(),
-                    player.getId(),
-                    exception.getStackTrace());
-            return false;
-        }
+        String statementString = "UPDATE players SET name='" + player.getRealName() + "', totalattacks=" +
+                player.getAttacks() + ", totaldamage=" + player.getDamage() + " WHERE id='" +
+                player.getId() + "'";
+        return executeStatement(statementString);
     }
 
+
+    public static boolean updateServer(Server server) {
+        String sqlString = "UPDATE servers SET afktimer=" + server.getAfktimer() + ", prefix='" +
+                server.getPrefix() + "' WHERE name='" + server.getName() + "'";
+        return executeStatement(sqlString);
+    }
 }

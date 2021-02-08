@@ -29,7 +29,7 @@ public class Server {
 
     private RaidList raids;
     private PlayerList players;
-    private String prefix;
+    private char prefix;
     private int afkTimer;
 
     private static final Logger logger = LogManager.getLogger(Server.class);
@@ -37,26 +37,31 @@ public class Server {
     public Server(Guild guild, boolean createdOnJoin) throws SQLException {
         this.guild = guild;
         this.raidChannel = determineTextChannel();
-        this.prefix = "!";
+        this.prefix = '!';
         this.afkTimer = 2;
         this.raids = new RaidList();
         this.players = new PlayerList();
-        this.name = guild.getName().length() < 5 ? (guild.getName() + "aaaa").substring(0,5) : guild.getName();
+        this.name = guild.getName();
 
         for(TextChannel channel: guild.getTextChannels()) {
             if(channel.canTalk()) {
                 this.defaultChannel = channel;
                 break;
             }
-            logger.warn("There is no available default channel for SERVER '{}'", guild.getName());
-            this.defaultChannel = null;
         }
+
+        if(this.defaultChannel == null) logger.warn("There is no available default channel for SERVER '{}'", guild.getName());
 
 
         if(createdOnJoin) {
             this.sendMessage("Hi, this is Raid Master (BETA).\nPlease make sure all of your raids follow the schema specified here: https://github.com/felixhir/raid-master-bot/blob/main/RaidTemplate\n" +
                     "Once you are done, use _!scan_. (you can rerun this command at any time if you missed any raids)");
+            DatabaseHandler.add(this);
         } else {
+            if(!DatabaseHandler.containsServer(this)) {
+                logger.warn("SERVER '{}' added RM during downtime, adding to db", this.name);
+                DatabaseHandler.add(this);
+            }
             logger.info("pulling data for SERVER '{}'", this.name);
             raids = DatabaseHandler.getRaids(this.guild);
             players = DatabaseHandler.getPlayers(this.guild);
@@ -74,7 +79,7 @@ public class Server {
      * NEVER use this for deployment. This is purely for testing purposes.
      */
     public Server() {
-        this.prefix = "!";
+        this.prefix = '!';
         this.name = "clanclan";
         this.raids = new RaidList();
         this.players = new PlayerList();
@@ -159,10 +164,11 @@ public class Server {
                         raids.size() - amount);
                 return "Finished scanning, I found " + (raids.size() - amount) + " new raid(s).";
             case "setprefix":
-                this.setPrefix(context);
+                this.setPrefix(context.toCharArray()[0]);
                 logger.info("set prefix of SERVER '{}' to '{}'",
                         this.name,
                         this.prefix);
+                DatabaseHandler.updateServer(this);
                 return "changed prefix to: " + this.prefix;
             case "setafk":
                 try {
@@ -171,6 +177,7 @@ public class Server {
                     logger.info("set afktimer of SERVER '{}' to '{}'",
                             this.name,
                             this.afkTimer);
+                    DatabaseHandler.updateServer(this);
                     return "changed afktimer to: " + this.afkTimer;
                 } catch (Exception e) {
                     return "this is not a valid time, nothing changed";
@@ -196,7 +203,7 @@ public class Server {
         }
     }
 
-    private void setPrefix(String newPrefix) {
+    private void setPrefix(char newPrefix) {
         this.prefix = newPrefix;
     }
 
@@ -246,8 +253,7 @@ public class Server {
 
         return (firstLine.charAt(0) +
                 df.format(Integer.valueOf(firstLine.split("-")[1])) +
-                df.format(Integer.valueOf(firstLine.split("-")[2])) +
-                this.name.substring(Math.min(5, this.name.length())) + "aaaaa").substring(0,10);
+                df.format(Integer.valueOf(firstLine.split("-")[2])));
     }
 
     public void setAfkTimer(int time) {
@@ -316,10 +322,18 @@ public class Server {
     }
 
     public boolean isCommand(String messageContent) {
-        return messageContent.substring(0,1).equals(prefix);
+        return messageContent.toCharArray()[0] == prefix;
     }
 
     public void addPlayer(Player p) {
         this.players.add(p);
+    }
+
+    public char getPrefix() {
+        return this.prefix;
+    }
+
+    public int getAfktimer() {
+        return this.afkTimer;
     }
 }
