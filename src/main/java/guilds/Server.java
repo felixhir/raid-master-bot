@@ -256,11 +256,11 @@ public class Server {
 
     public PlayerList getInactivePlayers() {
         PlayerList list = new PlayerList();
-        for(Player p: raids.get(raids.size()-afkTimer-1).getPlayers()) {
+        for(Player p: raids.get(Math.max(raids.size()-afkTimer-1,0)).getPlayers()) {
             boolean add = false;
             if(raids.get(Math.max(0,raids.size()-afkTimer-1)).getPlayers().containsPlayerById(p.getId()) &&
                 p.getAttacks() != 0) {
-                for(int i = raids.size()-afkTimer; i < raids.size(); i++) {
+                for(int i = Math.max(raids.size()-afkTimer, 0); i < raids.size(); i++) {
                     add = !raids.get(i).getPlayers().containsPlayerById(p.getId()) &&
                             p.getAttacks() != 0;
                 }
