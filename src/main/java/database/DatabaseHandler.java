@@ -201,9 +201,11 @@ public class DatabaseHandler {
      */
     public static RaidList getRaids(Guild guild){
         RaidList list = new RaidList();
+        String name = guild.getName().length() < 5 ?
+                (guild.getName() + "aaaa").substring(0,5) : guild.getName();
         try {
             ResultSet raidSet = connection.createStatement().executeQuery(
-                    "SELECT * FROM raids WHERE clan_name='" + guild.getName() + "'");
+                    "SELECT * FROM raids WHERE clan_name='" + name + "'");
             while (raidSet.next()) {
                 Raid raid = new Raid(raidSet.getInt("tier"),
                         raidSet.getInt("stage"),
