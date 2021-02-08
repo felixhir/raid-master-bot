@@ -35,7 +35,7 @@
             <AppenderRef ref="Console"/>
         </Root>
 
-        <Logger name="Application" level="INFO">
+        <Logger name="Application" level="DEBUG">
             <AppenderRef ref="ApplicationFiles"/>
         </Logger>
         <Logger name="handler" additivity="false">

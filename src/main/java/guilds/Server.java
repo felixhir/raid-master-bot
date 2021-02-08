@@ -41,7 +41,7 @@ public class Server {
         this.afkTimer = 2;
         this.raids = new RaidList();
         this.players = new PlayerList();
-        this.name = guild.getName();
+        this.name = guild.getName().length() < 5 ? (guild.getName() + "aaaa").substring(0,5) : guild.getName();
 
         for(TextChannel channel: guild.getTextChannels()) {
             if(channel.canTalk()) {
@@ -242,12 +242,12 @@ public class Server {
      */
     public String getRaidName(String raid) {
         DecimalFormat df = new DecimalFormat("00");
-        String firstLine = raid.split("\n")[0].replace("\\", "");
+        String firstLine = raid.split("\n")[0];
 
-        return firstLine.charAt(0) +
+        return (firstLine.charAt(0) +
                 df.format(Integer.valueOf(firstLine.split("-")[1])) +
                 df.format(Integer.valueOf(firstLine.split("-")[2])) +
-                this.name.substring(0, 5);
+                this.name.substring(Math.min(5, this.name.length())) + "aaaaa").substring(0,10);
     }
 
     public void setAfkTimer(int time) {
@@ -298,7 +298,8 @@ public class Server {
                     }
                 }
             } else {
-                break;
+                logger.debug("reached 600 messages, ending...");
+                return;
             }
         }
     }
