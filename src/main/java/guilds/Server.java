@@ -242,12 +242,12 @@ public class Server {
      */
     public String getRaidName(String raid) {
         DecimalFormat df = new DecimalFormat("00");
-        String firstLine = raid.split("\n")[0].replace("\\", "");
+        String firstLine = raid.split("\n")[0];
 
-        return firstLine.charAt(0) +
+        return (firstLine.charAt(0) +
                 df.format(Integer.valueOf(firstLine.split("-")[1])) +
                 df.format(Integer.valueOf(firstLine.split("-")[2])) +
-                this.name.substring(0, 5);
+                this.name.substring(Math.min(5, this.name.length())) + "aaaaa").substring(0,10);
     }
 
     public void setAfkTimer(int time) {
@@ -298,7 +298,8 @@ public class Server {
                     }
                 }
             } else {
-                break;
+                logger.debug("reached 600 messages, ending...");
+                return;
             }
         }
     }

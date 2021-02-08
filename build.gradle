@@ -8,7 +8,7 @@ apply plugin : 'java-library'
 
 ext {
     //noinspection GroovyAssignabilityCheck
-    javaMainClass = 'Application'
+    javaMainClass = 'runtime.Application'
 }
 
 application {
