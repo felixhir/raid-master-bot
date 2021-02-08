@@ -82,8 +82,10 @@ public class Application extends ListenerAdapter {
                     message.getAuthor().getName(),
                     senderType);
             if(message.isFromGuild()) {
+                String name = message.getGuild().getName().length() < 5 ?
+                        (message.getGuild().getName() + "aaaa").substring(0,5) : message.getGuild().getName();
                 for(Server server: servers) {
-                    if(message.getGuild().getName().equals(server.getName())) {
+                    if(name.equals(server.getName())) {
                         server.receiveMessage(message);
                     }
                 }
