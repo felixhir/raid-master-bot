@@ -36,7 +36,7 @@ public class Application extends ListenerAdapter {
     public static final Logger logger = LogManager.getLogger(Application.class);
 
     public static void main(String[] args) throws InterruptedException, SQLException, LoginException {
-        logger.debug("starting {}", Application.class);
+        logger.info("starting {}", Application.class);
 
         String token = System.getenv(BOT_TOKEN);
         StatusUpdater runner = new StatusUpdater();
@@ -44,7 +44,7 @@ public class Application extends ListenerAdapter {
         builder.setActivity(Activity.listening(CHANNEL_NAME + " or general"));
         servers = new LinkedList<>();
 
-        logger.debug("initialization of variables in {} finished, setting connections...", Application.class);
+        logger.info("initialization of variables in {} finished, setting connections...", Application.class);
 
         if(DatabaseHandler.setupDatabaseConnection(System.getenv("DB_USER"),null)) {
             DatabaseHandler.setSchema(System.getenv("DB_NAME"));
@@ -77,15 +77,13 @@ public class Application extends ListenerAdapter {
             String senderType = message.isFromGuild() ? "on '" + message.getGuild().getName() + "'"
                     : "as private message";
             logger.info("new message '{}' ({}) received from '{}' {}",
-                    message.getContentRaw().substring(0, Math.min(message.getContentRaw().length(), 5)),
+                    message.getContentRaw().substring(0, Math.min(message.getContentRaw().length(), 10)),
                     message.getId(),
                     message.getAuthor().getName(),
                     senderType);
             if(message.isFromGuild()) {
-                String name = message.getGuild().getName().length() < 5 ?
-                        (message.getGuild().getName() + "aaaa").substring(0,5) : message.getGuild().getName();
                 for(Server server: servers) {
-                    if(name.equals(server.getName())) {
+                    if(message.getGuild().getName().equals(server.getName())) {
                         server.receiveMessage(message);
                     }
                 }
@@ -94,6 +92,7 @@ public class Application extends ListenerAdapter {
         }
 
         if(message.getAuthor().getId().equals("224178281790832641")) {
+            logger.info("received PSA");
             for(Server s: servers) {
                 s.sendMessage(message.getContentRaw());
             }
@@ -106,19 +105,15 @@ public class Application extends ListenerAdapter {
         logger.info("the bot was added to '{}'", event.getGuild().getName());
 
         Guild guild = event.getGuild();
-        TextChannel channel = guild.getDefaultChannel();
-
-        for(TextChannel t: guild.getTextChannels()){
-            if(CHANNEL_NAME.equals(t.getName())) channel = t;
-        }
-        assert channel != null;
-        logger.debug("the channel '{}' will be used as default for {}", channel.getName(), guild.getName());
 
         try {
             servers.add(new Server(guild, true));
         } catch (SQLException exception) {
             StatusUpdater.addException();
-            exception.printStackTrace();
+            logger.error("failed adding SERVER '{}' to list <{}> {}",
+                    guild.getName(),
+                    exception.getMessage(),
+                    exception.getStackTrace());
         }
     }
 
@@ -129,15 +124,15 @@ public class Application extends ListenerAdapter {
 
         Guild guild = event.getGuild();
         servers.removeIf(server -> server.getName().equals(guild.getName()));
-        logger.info("removed '{}' from the serverlist successfully", guild.getName());
     }
+
 
     public static void setupBot() throws SQLException {
         for(Guild g: jda.getGuilds()){
             servers.add(new Server(g, false));
         }
         if(servers.isEmpty()) {
-            logger.warn("the bot is not connected to any application despite the API running");
+            logger.warn("the bot is not connected to any servers despite the API running");
         } else {
             logger.info("the bot is connected to {} server(s)", servers.size());
         }

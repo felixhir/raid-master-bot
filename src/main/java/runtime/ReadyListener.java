@@ -12,7 +12,7 @@ public class ReadyListener implements EventListener {
     @Override
     public void onEvent(@NotNull GenericEvent event) {
         if (event instanceof ReadyEvent) {
-            LogManager.getLogger(Application.class).info("connected to the discord API successfully");
+            LogManager.getLogger(ReadyListener.class).info("connected to the discord API successfully");
         }
     }
 }

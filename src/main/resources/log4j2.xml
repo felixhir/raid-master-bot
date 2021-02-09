@@ -2,8 +2,6 @@
 <Configuration status="INFO">
     <Properties>
         <Property name="LOG_DIR">logs</Property>
-        <Property name="APP_DIR">app</Property>
-        <Property name="MSG_DIR">messages</Property>
     </Properties>
 
     <Appenders>
@@ -11,18 +9,9 @@
             <PatternLayout pattern="%d{HH:mm:ss} %-5level [%c{2}]  - %msg%n"/>
         </Console>
 
-        <RollingFile name="ApplicationFiles" append="true"
-        filePattern="${LOG_DIR}/${APP_DIR}/raid-master-%d{dd MMM}.log" >
-            <PatternLayout pattern="%d{MMM dd HH:mm:ss} %highlight{%-5level} %c{2} [%t] - %msg%n"/>
-            <Policies>
-                <TimeBasedTriggeringPolicy interval="86400"/>
-                <SizeBasedTriggeringPolicy size="20 MB"/>
-            </Policies>
-        </RollingFile>
-
-        <RollingFile name="HandlerFiles" append="true"
-                     filePattern="${LOG_DIR}/${MSG_DIR}/handlers-%d{dd MMM}.log" >
-            <PatternLayout pattern="%d{MMM dd HH:mm:ss} %highlight{%-5level} %c{2} [%t] - %msg%n"/>
+        <RollingFile name="File" append="true"
+        filePattern="${LOG_DIR}/raid-master-%d{dd MMM}.log" >
+            <PatternLayout pattern="%d{MMM dd HH:mm:ss} %-5level [%c{2}] - %msg%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="86400"/>
                 <SizeBasedTriggeringPolicy size="20 MB"/>
@@ -32,15 +21,8 @@
 
     <Loggers>
         <Root level="TRACE">
-            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Console" level="INFO"/>
+            <AppenderRef ref="File"/>
         </Root>
-
-        <Logger name="Application" level="DEBUG">
-            <AppenderRef ref="ApplicationFiles"/>
-        </Logger>
-        <Logger name="handler" additivity="false">
-            <AppenderRef ref="Console" level="DEBUG"/>
-            <AppenderRef ref="HandlerFiles" level="INFO"/>
-        </Logger>
     </Loggers>
 </Configuration>

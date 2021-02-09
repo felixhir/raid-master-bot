@@ -36,16 +36,20 @@ public class Server {
 
     public Server(Guild guild, boolean createdOnJoin) throws SQLException {
         this.guild = guild;
+        this.name = guild.getName();
         this.raidChannel = determineTextChannel();
         this.prefix = '!';
         this.afkTimer = 2;
         this.raids = new RaidList();
         this.players = new PlayerList();
-        this.name = guild.getName();
+
 
         for(TextChannel channel: guild.getTextChannels()) {
             if(channel.canTalk()) {
                 this.defaultChannel = channel;
+                logger.info("default channel for SERVER '{}' set to '{}'",
+                        this.name,
+                        defaultChannel.getName());
                 break;
             }
         }
@@ -67,10 +71,6 @@ public class Server {
             players = DatabaseHandler.getPlayers(this.guild);
             if(raids.isEmpty()) {
                 logger.warn("found 0 RAIDS for SERVER '{}'", this.name);
-            } else {
-                logger.info("found {} RAIDS for SERVER '{}'",
-                        raids.size(),
-                        this.name);
             }
         }
     }
@@ -109,6 +109,7 @@ public class Server {
         if(isRaid(content)) {
             if(!this.raids.containsRaid(getRaidName(content))) {
                 Raid raid = this.createRaid(message);
+                if (raid == null) return;
                 this.raids.add(raid);
                 players = DatabaseHandler.getPlayers(this.guild);
                 PlayerList afks = getInactivePlayers();
@@ -124,21 +125,21 @@ public class Server {
 
                 message.addReaction("U+2705").queue();
                 logger.info("message '{}' ({}) was handled as a new raid",
-                        message.getContentRaw().substring(0,Math.min(5,message.getContentRaw().length())),
+                        message.getContentRaw().split("\n")[0],
                         message.getId());
             } else {
-                logger.info("message '{}' ({}) was ignored as an existing raid",
-                        message.getContentRaw().substring(0,Math.min(5,message.getContentRaw().length())),
+                logger.debug("message '{}' ({}) was ignored as an existing raid",
+                        message.getContentRaw().split("\n")[0],
                         message.getId());
             }
         } else if(isCommand(content)) {
             sendMessage(handleCommand(content));
             logger.info("message '{}' ({}) was handled as command",
-                    message.getContentRaw().substring(0,Math.min(5,message.getContentRaw().length())),
+                    message.getContentRaw(),
                     message.getId());
         } else {
-            logger.info("message '{}' ({}) was ignored as a text message",
-                    message.getContentRaw().substring(0,Math.min(5,message.getContentRaw().length())),
+            logger.debug("message '{}' ({}) was ignored as a text message",
+                    message.getContentRaw().substring(0,Math.min(10,message.getContentRaw().length())),
                     message.getId());
         }
     }
@@ -154,7 +155,7 @@ public class Server {
         switch (command) {
             case "scan":
                 int amount = raids.size();
-                logger.info("starting scan for SERVER '{}'", this.name);
+                logger.warn("starting scan for SERVER '{}'", this.name);
                 sendMessage("Starting my scan, this may take a while");
                 scanMessages();
                 raids = DatabaseHandler.getRaids(this.guild);
@@ -193,8 +194,10 @@ public class Server {
                     return "Please make sure to include a name";
                 } else {
                     if(players.getPlayerByName(context) == null) {
+                        logger.debug("failed to match name of PLAYER '{}'", context);
                         return "Failed to match name";
                     } else {
+                        logger.debug("returned stats of player '{}'", players.getPlayerByName(context).getRealName());
                         return players.getPlayerByName(context).toString();
                     }
                 }
@@ -218,9 +221,13 @@ public class Server {
         DatabaseHandler.add(raid);
         for (int i = 2; i < messageContent.length; i++) {
             Player player = createPlayer(messageContent[i]);
-            if (DatabaseHandler.add(raid, player)) {
+            if(player == null) {
+                logger.warn("creating a player risked potential injection, returning null...");
+                return null;
+            }
+            if (DatabaseHandler.addToRaid(player)) {
                 raid.addPlayer(player);
-                logger.info("successfully added PLAYER '{}' ({}) to db and RAID",
+                logger.debug("successfully added PLAYER '{}' ({}) to db and RAID",
                         player.getRealName(),
                         player.getId());
             } else {
@@ -233,6 +240,12 @@ public class Server {
     }
 
     public Player createPlayer(String text) {
+        if(text.contains(";")) {
+            logger.warn("found possible injection attack on '{}' in: '{}'",
+                    this.name,
+                    text);
+            return null;
+        }
         String[] s = text.split(",");
         return new Player(Arrays.toString(s[1].getBytes(StandardCharsets.UTF_8)),
                 s[2],
@@ -273,6 +286,9 @@ public class Server {
                 if(add) list.add(p);
             }
         }
+        logger.debug("got {} inactive PLAYERS for SERVER '{}'",
+                list.size(),
+                this.name);
         return list;
     }
 
@@ -282,6 +298,7 @@ public class Server {
         for(TextChannel t: this.guild.getTextChannels()){
             if(t.getName().equals("raid-master")) {
                 channel = t;
+                logger.info("found a raid-master channel on SERVER '{}'", this.name);
             }
         }
 
@@ -297,10 +314,11 @@ public class Server {
             if (count++ < maxMessages) {
                 if (this.isRaid(m.getContentRaw())) {
                     if(!raids.containsRaid(getRaidName(m.getContentRaw()))) {
+                        logger.info("found a raid when scanning: '{}'", m.getContentRaw().split("\n")[0]);
                         raids.add(createRaid(m));
                         m.addReaction("U+2705").queue();
                     } else {
-                        logger.info("found a raid for more than one time (msg: {})", m.getId());
+                        logger.debug("found a raid for more than one time (msg: {})", m.getId());
                     }
                 }
             } else {

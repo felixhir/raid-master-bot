@@ -26,15 +26,15 @@ public class DatabaseHandler {
      * @return True if the connection to the DB-server has been established successfully, otherwise false.
      */
     public static boolean setupDatabaseConnection(String userName, String password) {
-        logger.warn("connecting to db as '{}'@localhost...",
+        logger.warn("connecting to db as '{}'@localhost",
                 userName);
         try {
             connection = DriverManager.getConnection("jdbc:mariadb://localhost/", userName, password);
-            logger.info("connected to db !");
+            logger.info("connected to db!");
             return true;
         } catch (SQLException exception) {
             connection = null;
-            logger.error("failed connecting to db <{}> {}",
+            logger.fatal("failed connecting to db <{}> {}",
                     exception.getMessage(),
                     exception.getStackTrace());
             StatusUpdater.addException();
@@ -49,7 +49,7 @@ public class DatabaseHandler {
     public static boolean setSchema(String schemaName) {
         logger.warn("setting schema for database to: '{}'", schemaName);
         if (connection == null) {
-            logger.warn("there is no established connection!");
+            logger.error("there is no established connection!");
             StatusUpdater.addException();
             return false;
         }
@@ -58,7 +58,7 @@ public class DatabaseHandler {
             logger.info("successfully set to schema '{}'", schemaName);
             return true;
         } catch (SQLException exception) {
-            logger.error("failed setting db to schema '{}' <{}> {}",
+            logger.fatal("failed setting db to schema '{}' <{}> {}",
                     schemaName,
                     exception.getMessage(),
                     exception.getStackTrace());
@@ -98,14 +98,14 @@ public class DatabaseHandler {
                             existingPlayer.getRealName(),
                             existingPlayer.getId());
                 } else {
-                    logger.warn("failed to update PLAYER '{}' ({})",
+                    logger.debug("failed to update PLAYER '{}' ({})",
                             existingPlayer.getRealName(),
                             existingPlayer.getId());
                 }
             }
         } catch (SQLException exception){
             StatusUpdater.addException();
-            logger.error("could not check for PLAYER '{}' ({}) in db, nothing was altered ~source~ {}: {}",
+            logger.error("could not check for PLAYER '{}' ({}) in db, nothing was altered <{}> {}",
                     player.getRealName(),
                     player.getId(),
                     exception.getMessage(),
@@ -119,20 +119,22 @@ public class DatabaseHandler {
      * saved within the database yet.
      * @param raid The Raid that should be added to the database.
      */
-    public static void add(Raid raid) {
+    public static boolean add(Raid raid) {
         try {
             if (!containsRaid(raid)) {
                 String statementString = "INSERT INTO raids (date, tier, stage, attempt, clan_name) VALUES('" +
                         raid.getDate() + "', " + raid.getTier() + ", " + raid.getStage() + ", " + raid.getTries() + ", '" +
                         raid.getClanName() + "');";
-                logger.info("added RAID '{}' to db", raid.getName());
-                executeStatement(statementString);
+                logger.debug("added RAID '{}' to db", raid.getName());
+                return executeStatement(statementString);
             } else {
-                logger.info("RAID '{}' already exists in db, nothing was added", raid.getName());
+                logger.debug("RAID '{}' already exists in db, nothing was added", raid.getName());
+                return false;
             }
         } catch (SQLException exception){
             StatusUpdater.addException();
             logger.error("could not check for raid: '{}' in db, nothing was added", raid.getName());
+            return false;
         }
     }
 
@@ -140,12 +142,11 @@ public class DatabaseHandler {
     /**
      * Adds the partaking of a {@link Player} in a {@link Raid} to the database. This will save their
      * damage and attacks with reference to the player and the raid respectively. This method does not check
-     * for duplicates!
-     * @param raid The raid in the database to which the participation will be added.
+     * for duplicates and always uses the latest raid.
      * @param player The player whose statistics will be added to a raids participations.
      * @return True if the participation was added successfully. Otherwise returns false.
      */
-    public static boolean add(Raid raid, Player player){
+    public static boolean addToRaid(Player player){
         add(player);
         int id = 0;
         try {
@@ -244,7 +245,9 @@ public class DatabaseHandler {
                         raid.getPlayers().size(),
                         raid.getName());
             }
-            logger.debug("found {} RAIDS in DB", list.size());
+            logger.info("found {} RAIDS in DB for SERVER '{}'",
+                    list.size(),
+                    guild.getName());
             return list;
         } catch (SQLException exception) {
             StatusUpdater.addException();
@@ -276,7 +279,7 @@ public class DatabaseHandler {
                         playerSet.getInt("totaldamage"));
                 list.add(player);
             }
-            logger.debug("created new PLAYERLIST with size {}", list.size());
+            logger.info("created new PLAYERLIST with size {}", list.size());
             return list;
         } catch (SQLException exception) {
             StatusUpdater.addException();
