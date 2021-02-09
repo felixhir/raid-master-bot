@@ -177,9 +177,9 @@ public class DatabaseHandler {
         ResultSet resultSet = connection.createStatement().executeQuery("SELECT * FROM raids");
         while(resultSet.next()){
             if(resultSet.getString("clan_name").equals(raid.getClanName()) &&
-            resultSet.getInt("tier") == raid.getTier() &&
-            resultSet.getInt("stage") == raid.getStage() &&
-            resultSet.getInt("attempt") == raid.getTries()){
+                    resultSet.getInt("tier") == raid.getTier() &&
+                    resultSet.getInt("stage") == raid.getStage() &&
+                    resultSet.getInt("attempt") == raid.getTries()){
                 logger.debug("found RAID '{}' in db", raid.getName());
                 return true;
             }
@@ -227,15 +227,16 @@ public class DatabaseHandler {
                         raidSet.getString("clan_name"),
                         raidSet.getDate("date"));
                 list.add(raid);
-                String sqlString = "SELECT name, damage, players.id, attacks FROM players INNER JOIN participations ON " +
-                        "players.id=participations.player_id INNER JOIN raids ON raids.id = participations.raid_id WHERE raids.id='" +
-                        raid.getName() + "'";
+                String sqlString = "SELECT players.id, players.name, totalattacks, totaldamage" +
+                        " FROM players INNER JOIN participations p on players.id = p.player_id" +
+                        " INNER JOIN raids r on p.raid_id = r.id WHERE r.clan_name='" +
+                        guild.getName() + "'";
                 ResultSet playerSet = connection.createStatement().executeQuery(sqlString);
                 while (playerSet.next()){
                     Player player = new Player(playerSet.getString("name"),
                             playerSet.getString("id"),
-                            playerSet.getInt("attacks"),
-                            playerSet.getInt("damage"));
+                            playerSet.getInt("totalattacks"),
+                            playerSet.getInt("totaldamage"));
                     logger.debug("got PLAYER: {}", player.toString());
                     raid.addPlayer(player);
                 }
@@ -263,15 +264,16 @@ public class DatabaseHandler {
     public static PlayerList getPlayers(Guild guild) {
         PlayerList list = new PlayerList();
         try {
-            String sqlString = "SELECT name, damage, players.id, attacks FROM players INNER JOIN participations ON " +
-                    "players.id=participations.player_id INNER JOIN raids ON raids.id = participations.raid_id WHERE raids.clan_name='" +
+            String sqlString = "SELECT players.id, players.name, totalattacks, totaldamage" +
+                    " FROM players INNER JOIN participations p on players.id = p.player_id" +
+                    " INNER JOIN raids r on p.raid_id = r.id WHERE r.clan_name='" +
                     guild.getName() + "'";
             ResultSet playerSet = connection.createStatement().executeQuery(sqlString);
             while(playerSet.next()) {
                 Player player = new Player(playerSet.getString("name"),
                         playerSet.getString("id"),
-                        playerSet.getInt("attacks"),
-                        playerSet.getInt("damage"));
+                        playerSet.getInt("totalattacks"),
+                        playerSet.getInt("totaldamage"));
                 list.add(player);
             }
             logger.debug("created new PLAYERLIST with size {}", list.size());
