@@ -121,7 +121,7 @@ public class Server {
                 sendMessage("You used " + df.format(100-raid.getPotential()) + "% of your attacks.\n" +
                         "Based on the average damage of " + raid.getDpa() + " per attack you could have beaten" +
                         " the raid " + ((raid.getMaxAttacks()-raid.getFewestAttacksNeeded())%4 * 12) +
-                        "hours earlier, if everyone attacked " + raid.getFewestAttacksNeeded() + "times");
+                        " hours earlier, if everyone attacked " + raid.getFewestAttacksNeeded() + " times");
                 if(afks.isEmpty()) {
                     sendMessage("There are no players who didn't attack at all!");
                 } else {
@@ -139,7 +139,7 @@ public class Server {
             logger.info("message '{}' was handled as command", message.getContentRaw());
         } else {
             logger.debug("message '{}' was ignored as a text message",
-                    message.getContentRaw().substring(0,Math.min(10,message.getContentRaw().length())));
+                    message.getContentRaw().substring(0,Math.min(10,message.getContentRaw().length())).split("\n")[0]);
         }
     }
 
@@ -274,8 +274,9 @@ public class Server {
 
     public PlayerList getInactivePlayers() {
         PlayerList list = new PlayerList();
-        if(raids.size() - afkTimer < 0) return new PlayerList();
+        if(raids.size() - afkTimer - 1 < 0) return new PlayerList();
         for(Player p: raids.get(raids.size()-afkTimer-1).getPlayers()) {
+            if(p.getAttacks() == 0) break;
             boolean add = false;
             for(int i = raids.size()-afkTimer; i < raids.size(); i++) {
                 add = !raids.get(i).getPlayers().containsPlayerById(p.getId()) &&

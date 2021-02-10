@@ -21,7 +21,7 @@ public class RaidList extends LinkedList<Raid> {
                     return true;
                 }
             }
-            return true;
+            return super.add(raid);
         }
     }
 

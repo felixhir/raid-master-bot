@@ -238,7 +238,6 @@ public class DatabaseHandler {
                             playerSet.getString("id"),
                             playerSet.getInt("totalattacks"),
                             playerSet.getInt("totaldamage"));
-                    logger.debug("got PLAYER: {}", player.toString());
                     raid.addPlayer(player);
                 }
                 logger.debug("found {} PLAYERS in DB for RAID '{}'",
@@ -386,7 +385,8 @@ public class DatabaseHandler {
     public static char getServerPrefix(Server server) {
         try {
             ResultSet resultSet = connection.createStatement().
-                    executeQuery("SELECT afktimer FROM servers WHERE name = '" + server.getName() + "'");
+                    executeQuery("SELECT prefix FROM servers WHERE name = '" + server.getName() + "'");
+            resultSet.next();
             return resultSet.getString("prefix").toCharArray()[0];
         } catch (SQLException exception) {
             logger.error("failed pulling prefix for SERVER '{}', using default <{}> {}",
@@ -406,6 +406,7 @@ public class DatabaseHandler {
         try {
             ResultSet resultSet = connection.createStatement().
                     executeQuery("SELECT afktimer FROM servers WHERE name = '" + server.getName() + "'");
+            resultSet.next();
             return resultSet.getInt("afktimer");
         } catch (SQLException exception) {
         logger.error("failed pulling afktime for SERVER '{}', using default <{}> {}",
