@@ -17,18 +17,18 @@ class RaidListTest {
     @BeforeEach
     void setUp() {
         raids = new RaidList();
-        testRaid = new Raid(1,1,1,"test_clan", new Date(10-10-2020));
-        testRaidTwo = new Raid(2,2,2,"test_clan", new Date(20-10-2020));
+        testRaid = new Raid(1,1,1,"test_clan", new Date(-1));
+        testRaidTwo = new Raid(2,2,2,"test_clan", new Date(1612980726));
     }
 
     @Test
     void getList_returnsEmptyListOrSizeOne() {
-        LinkedList<Raid> result = raids.getList();
+        LinkedList<Raid> result = raids;
 
         assertTrue(result.isEmpty());
 
         raids.add(testRaid);
-        result = raids.getList();
+        result = raids;
 
         assertFalse(result.isEmpty());
     }
@@ -57,7 +57,7 @@ class RaidListTest {
 
         Raid result = raids.get(1);
 
-        assertEquals(testRaid, result);
+        assertEquals(testRaidTwo, result);
     }
 
     @Test

@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -105,6 +106,7 @@ public class Server {
     }
 
     public void receiveMessage(Message message) {
+        DecimalFormat df = new DecimalFormat("##.#");
         String content = message.getContentRaw();
         if(isRaid(content)) {
             if(!this.raids.containsRaid(getRaidName(content))) {
@@ -113,7 +115,7 @@ public class Server {
                 this.raids.add(raid);
                 players = DatabaseHandler.getPlayers(this.guild);
                 PlayerList afks = getInactivePlayers();
-                sendMessage("You used " + (100-raid.getPotential()) + "% of your attacks.\n" +
+                sendMessage("You used " + df.format(100-raid.getPotential()) + "% of your attacks.\n" +
                         "Based on the average damage of " + raid.getDpa() + " per attack you could have beaten" +
                         " the raid " + ((raid.getMaxAttacks()-raid.getFewestAttacksNeeded())%4 * 12) +
                         "hours earlier, if everyone attacked " + raid.getFewestAttacksNeeded() + "times");
@@ -275,16 +277,14 @@ public class Server {
 
     public PlayerList getInactivePlayers() {
         PlayerList list = new PlayerList();
-        for(Player p: raids.get(Math.max(raids.size()-afkTimer-1,0)).getPlayers()) {
+        if(raids.size() - afkTimer < 0) return new PlayerList();
+        for(Player p: raids.get(raids.size()-afkTimer-1).getPlayers()) {
             boolean add = false;
-            if(raids.get(Math.max(0,raids.size()-afkTimer-1)).getPlayers().containsPlayerById(p.getId()) &&
-                p.getAttacks() != 0) {
-                for(int i = Math.max(raids.size()-afkTimer, 0); i < raids.size(); i++) {
-                    add = !raids.get(i).getPlayers().containsPlayerById(p.getId()) &&
-                            p.getAttacks() != 0;
-                }
-                if(add) list.add(p);
+            for(int i = raids.size()-afkTimer; i < raids.size(); i++) {
+                add = !raids.get(i).getPlayers().containsPlayerById(p.getId()) &&
+                        p.getAttacks() != 0;
             }
+            if(add) list.add(p);
         }
         logger.debug("got {} inactive PLAYERS for SERVER '{}'",
                 list.size(),

@@ -4,42 +4,30 @@ import java.util.LinkedList;
 
 public class RaidList extends LinkedList<Raid> {
 
-    private final LinkedList<Raid> raids;
     private Raid recentRaid;
-
-    public RaidList(){
-        raids = new LinkedList<>();
-    }
-
-    public LinkedList<Raid> getList(){
-        return this.raids;
-    }
-
-    public int size(){
-        return this.raids.size();
-    }
-
-    @Override
-    public Raid get(int index){
-        return this.raids.get(index);
-    }
 
     @Override
     public boolean add(Raid raid){
-        if(raids.isEmpty()) {
+        if(this.isEmpty()) {
             recentRaid = raid;
-            return this.raids.add(raid);
+            return super.add(raid);
         } else if(raid.getDate().after(getRecentRaid().getDate())) {
             recentRaid = raid;
-            return this.raids.add(raid);
+            return super.add(raid);
         } else {
-            return this.raids.add(raid);
+            for(int i = 0; i < this.size(); i++) {
+                if(raid.getDate().before(this.get(i).getDate())){
+                    this.add(i, raid);
+                    return true;
+                }
+            }
+            return true;
         }
     }
 
     public String toString(){
         StringBuilder s = new StringBuilder("List contains:");
-        for(Raid r: raids) {
+        for(Raid r: this) {
             s.append(" '").append(r.getName()).append("',");
         }
         s = new StringBuilder(s.substring(0, s.length() - 1));
@@ -52,7 +40,7 @@ public class RaidList extends LinkedList<Raid> {
     }
 
     public boolean containsRaid(String name) {
-        for(Raid r: raids) {
+        for(Raid r: this) {
             if (r.getName().equals(name)) {
                 return true;
             }
