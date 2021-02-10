@@ -76,9 +76,8 @@ public class Application extends ListenerAdapter {
         if(!message.getAuthor().getName().equals(BOT_NAME)){
             String senderType = message.isFromGuild() ? "on '" + message.getGuild().getName() + "'"
                     : "as private message";
-            logger.info("new message '{}' ({}) received from '{}' {}",
+            logger.info("new message '{}' received from '{}' {}",
                     message.getContentRaw().substring(0, Math.min(message.getContentRaw().length(), 10)),
-                    message.getId(),
                     message.getAuthor().getName(),
                     senderType);
             if(message.isFromGuild()) {

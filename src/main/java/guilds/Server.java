@@ -129,23 +129,17 @@ public class Server {
                 }
 
                 message.addReaction("U+2705").queue();
-                logger.info("message '{}' ({}) was handled as a new raid",
-                        message.getContentRaw().split("\n")[0],
-                        message.getId());
+                logger.info("message '{}' was handled as a new raid", message.getContentRaw().split("\n")[0]);
             } else {
-                logger.debug("message '{}' ({}) was ignored as an existing raid",
-                        message.getContentRaw().split("\n")[0],
-                        message.getId());
+                logger.debug("message '{}' was ignored as an existing raid",
+                        message.getContentRaw().split("\n")[0]);
             }
         } else if(isCommand(content)) {
             sendMessage(handleCommand(content));
-            logger.info("message '{}' ({}) was handled as command",
-                    message.getContentRaw(),
-                    message.getId());
+            logger.info("message '{}' was handled as command", message.getContentRaw());
         } else {
-            logger.debug("message '{}' ({}) was ignored as a text message",
-                    message.getContentRaw().substring(0,Math.min(10,message.getContentRaw().length())),
-                    message.getId());
+            logger.debug("message '{}' was ignored as a text message",
+                    message.getContentRaw().substring(0,Math.min(10,message.getContentRaw().length())));
         }
     }
 
@@ -321,7 +315,8 @@ public class Server {
                         raids.add(createRaid(m));
                         m.addReaction("U+2705").queue();
                     } else {
-                        logger.debug("found a raid for more than one time (msg: {})", m.getId());
+                        logger.debug("found a raid for more than one time ({})",
+                                m.getContentRaw().split("\n")[0]);
                     }
                 }
             } else {
