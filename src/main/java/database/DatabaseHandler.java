@@ -367,10 +367,52 @@ public class DatabaseHandler {
         return executeStatement(statementString);
     }
 
-
+    /**
+     * Updates a servers afktimer and command prefix in the database.
+     * @param server The server to be updated
+     * @return True if the server was successfully updated, otherwise false.
+     */
     public static boolean updateServer(Server server) {
         String sqlString = "UPDATE servers SET afktimer=" + server.getAfktimer() + ", prefix='" +
                 server.getPrefix() + "' WHERE name='" + server.getName() + "'";
         return executeStatement(sqlString);
+    }
+
+    /**
+     * Returns the prefix for commands of a certain {@link Server} from the database.
+     * @param server The server whose prefix should be returned.
+     * @return The prefix of the server as a char. If this was not changed it will always return '!'.
+     */
+    public static char getServerPrefix(Server server) {
+        try {
+            ResultSet resultSet = connection.createStatement().
+                    executeQuery("SELECT afktimer FROM servers WHERE name = '" + server.getName() + "'");
+            return resultSet.getString("prefix").toCharArray()[0];
+        } catch (SQLException exception) {
+            logger.error("failed pulling prefix for SERVER '{}', using default <{}> {}",
+                    server.getName(),
+                    exception.getMessage(),
+                    exception.getStackTrace());
+            return '!';
+        }
+    }
+
+    /**
+     * Returns the afktime of a certain {@link Server} from the database.
+     * @param server The server whose afktime should be returned.
+     * @return The afktime of the server as an integer. If this was not changed it will always return 2.
+     */
+    public static int getServerAfktime(Server server) {
+        try {
+            ResultSet resultSet = connection.createStatement().
+                    executeQuery("SELECT afktimer FROM servers WHERE name = '" + server.getName() + "'");
+            return resultSet.getInt("afktimer");
+        } catch (SQLException exception) {
+        logger.error("failed pulling afktime for SERVER '{}', using default <{}> {}",
+                server.getName(),
+                exception.getMessage(),
+                exception.getStackTrace());
+        return '2';
+        }
     }
 }

@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,8 +38,6 @@ public class Server {
         this.guild = guild;
         this.name = guild.getName();
         this.raidChannel = determineTextChannel();
-        this.prefix = '!';
-        this.afkTimer = 2;
         this.raids = new RaidList();
         this.players = new PlayerList();
 
@@ -59,17 +56,23 @@ public class Server {
 
 
         if(createdOnJoin) {
+            this.prefix = '!';
+            this.afkTimer = 2;
             this.sendMessage("Hi, this is Raid Master (BETA).\nPlease make sure all of your raids follow the schema specified here: https://github.com/felixhir/raid-master-bot/blob/main/RaidTemplate\n" +
                     "Once you are done, use _!scan_. (you can rerun this command at any time if you missed any raids)");
             DatabaseHandler.add(this);
         } else {
             if(!DatabaseHandler.containsServer(this)) {
+                this.prefix = '!';
+                this.afkTimer = 2;
                 logger.warn("SERVER '{}' added RM during downtime, adding to db", this.name);
                 DatabaseHandler.add(this);
             }
             logger.info("pulling data for SERVER '{}'", this.name);
-            raids = DatabaseHandler.getRaids(this.guild);
-            players = DatabaseHandler.getPlayers(this.guild);
+            this.raids = DatabaseHandler.getRaids(this.guild);
+            this.players = DatabaseHandler.getPlayers(this.guild);
+            this.prefix = DatabaseHandler.getServerPrefix(this);
+            this.afkTimer = DatabaseHandler.getServerAfktime(this);
             if(raids.isEmpty()) {
                 logger.warn("found 0 RAIDS for SERVER '{}'", this.name);
             }
