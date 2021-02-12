@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -46,9 +45,9 @@ public class Application extends ListenerAdapter {
 
         logger.info("initialization of variables in {} finished, setting connections...", Application.class);
 
-        if(DatabaseHandler.setupDatabaseConnection(System.getenv("DB_USER"),null)) {
-            DatabaseHandler.setSchema(System.getenv("DB_NAME"));
-
+        if(DatabaseHandler.createConnection(System.getenv("DB_USER"),null)) {
+            if (!DatabaseHandler.setSchema(System.getenv("DB_NAME"))) return;
+            DatabaseHandler.closeConnection();
             jda = builder.build();
             jda.awaitReady();
             runner.setJda(jda);

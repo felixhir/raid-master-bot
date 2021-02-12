@@ -11,6 +11,7 @@ import players.PlayerList;
 import raids.Raid;
 import raids.RaidList;
 
+import javax.xml.crypto.Data;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -77,6 +78,7 @@ public class Server {
                 logger.warn("found 0 RAIDS for SERVER '{}'", this.name);
             }
         }
+        DatabaseHandler.closeConnection();
     }
 
     /**
@@ -130,6 +132,7 @@ public class Server {
 
                 message.addReaction("U+2705").queue();
                 logger.info("message '{}' was handled as a new raid", message.getContentRaw().split("\n")[0]);
+                DatabaseHandler.closeConnection();
             } else {
                 logger.debug("message '{}' was ignored as an existing raid",
                         message.getContentRaw().split("\n")[0]);
@@ -162,6 +165,7 @@ public class Server {
                 logger.info("scanned SERVER '{}' and found {} new RAIDS",
                         this.name,
                         raids.size() - amount);
+                DatabaseHandler.closeConnection();
                 return "Finished scanning, I found " + (raids.size() - amount) + " new raid(s).";
             case "setprefix":
                 this.setPrefix(context.toCharArray()[0]);
@@ -169,6 +173,7 @@ public class Server {
                         this.name,
                         this.prefix);
                 DatabaseHandler.updateServer(this);
+                DatabaseHandler.closeConnection();
                 return "changed prefix to: " + this.prefix;
             case "setafk":
                 try {
@@ -178,6 +183,7 @@ public class Server {
                             this.name,
                             this.afkTimer);
                     DatabaseHandler.updateServer(this);
+                    DatabaseHandler.closeConnection();
                     return "changed afktimer to: " + this.afkTimer;
                 } catch (Exception e) {
                     return "this is not a valid time, nothing changed";
@@ -235,6 +241,7 @@ public class Server {
                         raid.getName());
             }
         }
+        DatabaseHandler.closeConnection();
         return raid;
     }
 

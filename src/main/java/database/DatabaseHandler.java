@@ -18,19 +18,26 @@ public class DatabaseHandler {
     public static final Logger logger = LogManager.getLogger(DatabaseHandler.class);
     public static Connection connection;
 
+    private static String user;
+    private static String password;
+    private static String schema;
+
 
     /**
      * Connects to the local database instance as a given user.
      * @param userName The name of the user saved in the database
-     * @param password The password of the respective user, if they don't have one, set 'null'
+     * @param pw The password of the respective user, if they don't have one, set 'null'
      * @return True if the connection to the DB-server has been established successfully, otherwise false.
      */
-    public static boolean setupDatabaseConnection(String userName, String password) {
+    public static boolean createConnection(String userName, String pw) {
         logger.warn("connecting to db as '{}'@localhost",
                 userName);
+        user = userName;
+        password = pw;
         try {
             connection = DriverManager.getConnection("jdbc:mariadb://localhost/", userName, password);
             logger.info("connected to db!");
+            if (!(schema == null)) setSchema(schema);
             return true;
         } catch (SQLException exception) {
             connection = null;
@@ -42,18 +49,34 @@ public class DatabaseHandler {
         }
     }
 
+
+    /**
+     * Shuts down the existing connection to the database.
+     */
+    public static void closeConnection(){
+        logger.info("closing down DB connection");
+        try {
+            connection.close();
+        } catch (SQLException exception) {
+            logger.error("failed cutting connection <{}> {}",
+                    exception.getMessage(),
+                    exception.getStackTrace());
+        }
+    }
+
     /**
      * Chooses a given schema from the database that was connected to before
      * @param schemaName Name of the schema
      */
     public static boolean setSchema(String schemaName) {
         logger.warn("setting schema for database to: '{}'", schemaName);
-        if (connection == null) {
-            logger.error("there is no established connection!");
-            StatusUpdater.addException();
-            return false;
-        }
+        schema = schemaName;
         try {
+            if (connection == null || connection.isClosed()) {
+                logger.error("there is no established connection, creating a new one...");
+                createConnection(user, password);
+                StatusUpdater.addException();
+            }
             connection.createStatement().execute("USE " + schemaName);
             logger.info("successfully set to schema '{}'", schemaName);
             return true;
@@ -75,6 +98,7 @@ public class DatabaseHandler {
      */
     private static void add(Player player) {
         try {
+            if(connection.isClosed()) createConnection(user, password);
             if(!containsPlayer(player)){
                 String statementString = "INSERT INTO players (id, name, totaldamage, totalattacks) VALUES ('" +
                         player.getId() + "', '" + player.getByteName() + "', " + player.getDamage() + ", " + player.getAttacks() + ");";
@@ -121,6 +145,7 @@ public class DatabaseHandler {
      */
     public static boolean add(Raid raid) {
         try {
+            if(connection.isClosed()) createConnection(user, password);
             if (!containsRaid(raid)) {
                 String statementString = "INSERT INTO raids (date, tier, stage, attempt, clan_name) VALUES('" +
                         raid.getDate() + "', " + raid.getTier() + ", " + raid.getStage() + ", " + raid.getTries() + ", '" +
@@ -150,6 +175,7 @@ public class DatabaseHandler {
         add(player);
         int id = 0;
         try {
+            if(connection.isClosed()) createConnection(user, password);
             ResultSet raids = connection.createStatement().executeQuery("SELECT id FROM raids");
             while (raids.next()) {
                 id = raids.getInt("id");
@@ -175,6 +201,7 @@ public class DatabaseHandler {
      * @throws SQLException Thrown if there was a problem to execute the query looking for raids.
      */
     public static boolean containsRaid(Raid raid) throws SQLException {
+        if(connection.isClosed()) createConnection(user, password);
         ResultSet resultSet = connection.createStatement().executeQuery("SELECT * FROM raids");
         while(resultSet.next()){
             if(resultSet.getString("clan_name").equals(raid.getClanName()) &&
@@ -197,6 +224,7 @@ public class DatabaseHandler {
      * @throws SQLException Thrown if there was a problem to execute the query looking for raids.
      */
     public static boolean containsServer(Server server) throws SQLException {
+        if(connection.isClosed()) createConnection(user, password);
         ResultSet resultSet = connection.createStatement().executeQuery("SELECT name FROM servers");
         while(resultSet.next()){
             if(resultSet.getString("name").equals(server.getName())){
@@ -219,6 +247,7 @@ public class DatabaseHandler {
     public static RaidList getRaids(Guild guild){
         RaidList list = new RaidList();
         try {
+            if(connection.isClosed()) createConnection(user, password);
             ResultSet raidSet = connection.createStatement().executeQuery(
                     "SELECT * FROM raids WHERE clan_name='" + guild.getName() + "'");
             while (raidSet.next()) {
@@ -228,7 +257,7 @@ public class DatabaseHandler {
                         raidSet.getString("clan_name"),
                         raidSet.getDate("date"));
                 list.add(raid);
-                String sqlString = "SELECT players.id, players.name, totalattacks, totaldamage" +
+                String sqlString = "SELECT players.id, players.name, attacks, damage" +
                         " FROM players INNER JOIN participations p on players.id = p.player_id" +
                         " INNER JOIN raids r on p.raid_id = r.id WHERE r.clan_name='" +
                         guild.getName() + "'";
@@ -236,8 +265,8 @@ public class DatabaseHandler {
                 while (playerSet.next()){
                     Player player = new Player(playerSet.getString("name"),
                             playerSet.getString("id"),
-                            playerSet.getInt("totalattacks"),
-                            playerSet.getInt("totaldamage"));
+                            playerSet.getInt("attacks"),
+                            playerSet.getInt("damage"));
                     raid.addPlayer(player);
                 }
                 logger.debug("found {} PLAYERS in DB for RAID '{}'",
@@ -266,7 +295,8 @@ public class DatabaseHandler {
     public static PlayerList getPlayers(Guild guild) {
         PlayerList list = new PlayerList();
         try {
-            String sqlString = "SELECT players.id, players.name, totalattacks, totaldamage" +
+            if(connection.isClosed()) createConnection(user, password);
+            String sqlString = "SELECT players.id, name, attacks, damage" +
                     " FROM players INNER JOIN participations p on players.id = p.player_id" +
                     " INNER JOIN raids r on p.raid_id = r.id WHERE r.clan_name='" +
                     guild.getName() + "'";
@@ -274,8 +304,8 @@ public class DatabaseHandler {
             while(playerSet.next()) {
                 Player player = new Player(playerSet.getString("name"),
                         playerSet.getString("id"),
-                        playerSet.getInt("totalattacks"),
-                        playerSet.getInt("totaldamage"));
+                        playerSet.getInt("attacks"),
+                        playerSet.getInt("damage"));
                 list.add(player);
             }
             logger.info("created new PLAYERLIST with size {}", list.size());
@@ -297,6 +327,7 @@ public class DatabaseHandler {
      * @throws SQLException Thrown if there was a problem with the execution of the query looking for players.
      */
     private static boolean containsPlayer(Player player) throws SQLException {
+        if(connection.isClosed()) createConnection(user, password);
         ResultSet resultSet = connection.createStatement().executeQuery("SELECT id FROM players");
         while(resultSet.next()){
             if(resultSet.getString("id").equals(player.getId())){
@@ -322,6 +353,7 @@ public class DatabaseHandler {
         String sqlString = "INSERT INTO servers (name, prefix, afktimer) VALUES('" + server.getName() +
                 "', '" + server.getPrefix() + "', " + server.getAfktimer() + ")";
         try {
+            if(connection.isClosed()) createConnection(user, password);
             connection.createStatement().execute(sqlString);
             logger.info("added SERVER '{}' to DB", server.getName());
             return true;
@@ -342,6 +374,7 @@ public class DatabaseHandler {
      */
     public static boolean executeStatement(String sqlString){
         try {
+            if(connection.isClosed()) createConnection(user, password);
             Statement statement = connection.createStatement();
             statement.execute(sqlString);
             logger.debug("successfully executed '{}'", sqlString);
@@ -384,6 +417,7 @@ public class DatabaseHandler {
      */
     public static char getServerPrefix(Server server) {
         try {
+            if(connection.isClosed()) createConnection(user, password);
             ResultSet resultSet = connection.createStatement().
                     executeQuery("SELECT prefix FROM servers WHERE name = '" + server.getName() + "'");
             resultSet.next();
@@ -404,6 +438,7 @@ public class DatabaseHandler {
      */
     public static int getServerAfktime(Server server) {
         try {
+            if(connection.isClosed()) createConnection(user, password);
             ResultSet resultSet = connection.createStatement().
                     executeQuery("SELECT afktimer FROM servers WHERE name = '" + server.getName() + "'");
             resultSet.next();
