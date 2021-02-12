@@ -61,21 +61,29 @@ class RaidListTest {
     }
 
     @Test
-    void add_canAddTwoRaids() {
-        boolean resultOne = raids.add(testRaid);
-        boolean resultTwo = raids.add(testRaidTwo);
+    void add_addsRaidsWhenArrivingCorrectly() {
+        raids.add(testRaid);
+        raids.add(testRaidTwo);
 
-        assertTrue(resultOne);
-        assertTrue(resultTwo);
+        assertEquals(raids.get(1), testRaidTwo);
     }
 
     @Test
-    void add_raidsAreAddedByDate() {
+    void add_addsRaidsWhenArrivingInWrongOrder() {
         raids.add(testRaidTwo);
         raids.add(testRaid);
-        Raid raid = raids.getRecentRaid();
 
-        assertEquals(testRaidTwo, raid);
+        assertEquals(raids.get(1), testRaidTwo);
+    }
+
+    @Test
+    void add_canAddMoreThanTwoRaids() {
+        raids.add(testRaid);
+        raids.add(new Raid(8,2,3,"jeffs", new Date(123123123)));
+        raids.add(testRaidTwo);
+
+        assertEquals(raids.get(0), testRaid);
+        assertEquals(raids.get(1), testRaidTwo);
     }
 
     @Test
