@@ -15,7 +15,7 @@ application {
 }
 
 group 'org.example'
-version '1.0 BETA-RELEASE'
+version '1.0 RELEASE'
 
 repositories {
     mavenCentral()
