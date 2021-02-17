@@ -113,7 +113,9 @@ public class DatabaseHandler {
                 logger.debug("PLAYER '{}' ({}) already exists in db, updating them",
                         player.getRealName(),
                         player.getId());
-                ResultSet playerSet = connection.createStatement().executeQuery("SELECT * FROM players WHERE id='" + player.getId() + "';");
+                PreparedStatement statement = connection.prepareStatement("SELECT * FROM players WHERE id=?");
+                statement.setString(1, player.getId());
+                ResultSet playerSet = statement.executeQuery();
                 playerSet.next();
                 Player existingPlayer = new Player(playerSet.getString("name"),
                         playerSet.getString("id"),
@@ -249,7 +251,8 @@ public class DatabaseHandler {
      */
     public static boolean containsServer(Server server) throws SQLException {
         if(connection.isClosed()) createConnection(user, password);
-        ResultSet resultSet = connection.createStatement().executeQuery("SELECT name FROM servers");
+        PreparedStatement statement = connection.prepareStatement("SELECT name FROM servers");
+        ResultSet resultSet = statement.executeQuery();
         while(resultSet.next()){
             if(resultSet.getString("name").equals(server.getName())){
                 logger.debug("found SERVER '{}' in db", server.getName());
@@ -272,8 +275,9 @@ public class DatabaseHandler {
         RaidList list = new RaidList();
         try {
             if(connection.isClosed()) createConnection(user, password);
-            ResultSet raidSet = connection.createStatement().executeQuery(
-                    "SELECT * FROM raids WHERE clan_name='" + guild.getName() + "'");
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM raids WHERE clan_name=?");
+            statement.setString(1, guild.getName());
+            ResultSet raidSet = statement.executeQuery();
             while (raidSet.next()) {
                 Raid raid = new Raid(raidSet.getInt("tier"),
                         raidSet.getInt("stage"),
@@ -281,11 +285,11 @@ public class DatabaseHandler {
                         raidSet.getString("clan_name"),
                         raidSet.getDate("date"));
                 list.add(raid);
-                ResultSet playerSet = connection.createStatement().executeQuery(
-                        "SELECT players.id, players.name, attacks, damage" +
+                PreparedStatement statementPlayers = connection.prepareStatement("SELECT players.id, players.name, attacks, damage" +
                         " FROM players INNER JOIN participations p on players.id = p.player_id" +
-                        " INNER JOIN raids r on p.raid_id = r.id WHERE r.clan_name='" +
-                        guild.getName() + "'");
+                        " INNER JOIN raids r on p.raid_id = r.id WHERE r.clan_name=?");
+                statement.setString(1, guild.getName());
+                ResultSet playerSet = statementPlayers.executeQuery();
                 while (playerSet.next()){
                     Player player = new Player(playerSet.getString("name"),
                             playerSet.getString("id"),
@@ -320,11 +324,11 @@ public class DatabaseHandler {
         PlayerList list = new PlayerList();
         try {
             if(connection.isClosed()) createConnection(user, password);
-            ResultSet playerSet = connection.createStatement().executeQuery(
-                    "SELECT players.id, name, attacks, damage" +
+            PreparedStatement statement  = connection.prepareStatement("SELECT players.id, name, attacks, damage" +
                     " FROM players INNER JOIN participations p on players.id = p.player_id" +
-                    " INNER JOIN raids r on p.raid_id = r.id WHERE r.clan_name='" +
-                    guild.getName() + "'");
+                    " INNER JOIN raids r on p.raid_id = r.id WHERE r.clan_name=?");
+            statement.setString(1, guild.getName());
+            ResultSet playerSet = statement.executeQuery();
             while(playerSet.next()) {
                 Player player = new Player(playerSet.getString("name"),
                         playerSet.getString("id"),
