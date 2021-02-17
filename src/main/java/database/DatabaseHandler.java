@@ -451,8 +451,9 @@ public class DatabaseHandler {
     public static char getServerPrefix(Server server) {
         try {
             if(connection.isClosed()) createConnection(user, password);
-            ResultSet resultSet = connection.createStatement().
-                    executeQuery("SELECT prefix FROM servers WHERE name = '" + server.getName() + "'");
+            PreparedStatement statement = connection.prepareStatement("SELECT prefix FROM servers WHERE name=?");
+            statement.setString(1, server.getName());
+            ResultSet resultSet = statement.executeQuery();
             resultSet.next();
             return resultSet.getString("prefix").toCharArray()[0];
         } catch (SQLException exception) {
@@ -472,8 +473,9 @@ public class DatabaseHandler {
     public static int getServerAfktime(Server server) {
         try {
             if(connection.isClosed()) createConnection(user, password);
-            ResultSet resultSet = connection.createStatement().
-                    executeQuery("SELECT afktimer FROM servers WHERE name = '" + server.getName() + "'");
+            PreparedStatement statement = connection.prepareStatement("SELECT afktimer FROM servers WHERE name=?");
+            statement.setString(1, server.getName());
+            ResultSet resultSet = statement.executeQuery();
             resultSet.next();
             return resultSet.getInt("afktimer");
         } catch (SQLException exception) {
