@@ -21,7 +21,7 @@ import java.util.LinkedList;
 
 /**
  * @author felixhir
- * @version 1.0 BETA-RELEASE
+ * @version 1.0.1
  */
 public class Application extends ListenerAdapter {
 

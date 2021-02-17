@@ -105,7 +105,7 @@ public class DatabaseHandler {
                 logger.debug("created new PLAYER '{}'", player.getRealName());
                 executeStatement(statementString);
             } else {
-                logger.info("PLAYER '{}' ({}) already exists in db, updating them",
+                logger.debug("PLAYER '{}' ({}) already exists in db, updating them",
                         player.getRealName(),
                         player.getId());
                 ResultSet playerSet = connection.createStatement().executeQuery("SELECT * FROM players WHERE id='" + player.getId() + "';");
@@ -350,11 +350,16 @@ public class DatabaseHandler {
      * @return True if the server was added successfully, otherwise false.
      */
     public static boolean add(Server server) {
+
         String sqlString = "INSERT INTO servers (name, prefix, afktimer) VALUES('" + server.getName() +
                 "', '" + server.getPrefix() + "', " + server.getAfktimer() + ")";
         try {
             if(connection.isClosed()) createConnection(user, password);
-            connection.createStatement().execute(sqlString);
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO servers(name, prefix, afktimer) VALUES (?, ?, ?)");
+            statement.setString(1, server.getName());
+            statement.setString(2, String.valueOf(server.getPrefix()));
+            statement.setInt(3, server.getAfktimer());
+            statement.execute();
             logger.info("added SERVER '{}' to DB", server.getName());
             return true;
         } catch (SQLException exception) {
