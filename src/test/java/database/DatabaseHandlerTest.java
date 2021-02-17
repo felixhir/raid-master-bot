@@ -1,6 +1,5 @@
 package database;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,17 +34,5 @@ class DatabaseHandlerTest {
         boolean result = DatabaseHandler.setSchema("testingschema");
 
         assertTrue(result);
-    }
-
-    @AfterEach
-    void tearDown() {
-        wipeSchema();
-    }
-
-    private void wipeSchema() {
-        DatabaseHandler.createConnection("testing_user", null);
-        DatabaseHandler.executeStatement("DELETE FROM participations");
-        DatabaseHandler.executeStatement("DELETE FROM raids");
-        DatabaseHandler.executeStatement("DELETE FROM players");
     }
 }
