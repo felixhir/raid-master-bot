@@ -91,22 +91,19 @@ public class DatabaseHandler {
     }
 
     /**
-     * Allows to add a {@link Player} to the database. If the players unique id exists in the database already, the
-     * player will be updated instead.
+     * Allows to add a {@link Player} to the database. This will save their name and id and if the id exists update the name
      * @param player A player from a {@link Raid} to be added to the database or used to update his current existence
-     *               (name, damage, attacks).
+     *               (name).
      */
     private static void add(Player player) {
         try {
             if(connection.isClosed()) createConnection(user, password);
             if(!containsPlayer(player)){
                 PreparedStatement statement = connection.prepareStatement(
-                        "INSERT INTO players (id, name, totaldamage, totalattacks) VALUES " +
-                        "(?, ?, ?, ?)");
+                        "INSERT INTO players (id, name) VALUES " +
+                        "(?, ?)");
                 statement.setString(1, player.getId());
                 statement.setString(2, player.getByteName());
-                statement.setInt(3, player.getDamage());
-                statement.setInt(4, player.getDamage());
                 statement.execute();
                 logger.debug("created new PLAYER '{}'", player.getRealName());
             } else {
@@ -123,7 +120,7 @@ public class DatabaseHandler {
                         playerSet.getInt("totaldamage"));
                 existingPlayer.addDamage(player.getDamage());
                 existingPlayer.addAttacks(player.getAttacks());
-                existingPlayer.setRealName(player.getByteName());
+                existingPlayer.setRealName(player.getRealName());
                 if(updatePlayer(existingPlayer)) {
                     logger.debug("updated PLAYER '{}' ({})",
                             existingPlayer.getRealName(),
@@ -163,7 +160,8 @@ public class DatabaseHandler {
                 statement.setInt(4, raid.getTries());
                 statement.setString(5, raid.getClanName());
                 logger.debug("added RAID '{}' to db", raid.getName());
-                return statement.execute();
+                statement.execute();
+                return true;
             } else {
                 logger.debug("RAID '{}' already exists in db, nothing was added", raid.getName());
                 return false;
@@ -207,7 +205,8 @@ public class DatabaseHandler {
             statement.setInt(2, player.getDamage());
             statement.setString(3, player.getId());
             statement.setInt(4, id);
-            return statement.execute();
+            statement.execute();
+            return true;
         } catch (SQLException exception) {
             logger.error("failed adding participation of player '{}' to raid #{} <{}> {}",
                     player.getRealName(),
@@ -405,13 +404,11 @@ public class DatabaseHandler {
     private static boolean updatePlayer(Player player) {
         try {
             PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE players SET name=?," +
-                    "totalattacks=?, totaldamage=? WHERE id=?");
-            statement.setString(1, player.getRealName());
+                    "UPDATE players SET name=? WHERE id=?");
+            statement.setString(1, player.getByteName());
             statement.setInt(2, player.getAttacks());
-            statement.setInt(3, player.getDamage());
-            statement.setString(4, player.getId());
-            return statement.execute();
+            statement.execute();
+            return true;
         } catch (SQLException exception) {
             logger.error("failed updating PLAYER '{}' <{}> {}",
                     player.getRealName(),
@@ -433,7 +430,8 @@ public class DatabaseHandler {
             statement.setInt(1, server.getAfktimer());
             statement.setString(2, String.valueOf(server.getPrefix()));
             statement.setString(3, server.getName());
-            return statement.execute();
+            statement.execute();
+            return true;
         } catch (SQLException exception) {
             logger.error("failed updating SERVER '{}' <{}> {}",
                     server.getName(),

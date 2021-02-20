@@ -76,6 +76,10 @@ public class Server {
             this.afkTimer = DatabaseHandler.getServerAfktime(this);
             if(raids.isEmpty()) {
                 logger.warn("found 0 RAIDS for SERVER '{}'", this.name);
+            } else {
+                logger.info("found {} RAID(S) for SERVER '{}'",
+                        raids.size(),
+                        this.name);
             }
         }
         DatabaseHandler.closeConnection();
