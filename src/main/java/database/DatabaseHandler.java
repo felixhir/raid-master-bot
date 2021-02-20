@@ -271,7 +271,7 @@ public class DatabaseHandler {
                 PreparedStatement statementPlayers = connection.prepareStatement("SELECT players.id, players.name, attacks, damage" +
                         " FROM players INNER JOIN participations p on players.id = p.player_id" +
                         " INNER JOIN raids r on p.raid_id = r.id WHERE r.clan_name=?");
-                statement.setString(1, guild.getName());
+                statementPlayers.setString(1, guild.getName());
                 ResultSet playerSet = statementPlayers.executeQuery();
                 while (playerSet.next()){
                     Player player = new Player(playerSet.getString("name"),
