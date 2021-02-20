@@ -107,33 +107,17 @@ public class DatabaseHandler {
                 statement.execute();
                 logger.debug("created new PLAYER '{}'", player.getRealName());
             } else {
-                logger.debug("PLAYER '{}' ({}) already exists in db, updating them",
+                logger.debug("PLAYER '{}' ({}) already exists in db, updating name",
                         player.getRealName(),
                         player.getId());
-                PreparedStatement statement = connection.prepareStatement("SELECT * FROM players WHERE id=?");
-                statement.setString(1, player.getId());
-                ResultSet playerSet = statement.executeQuery();
-                playerSet.next();
-                Player existingPlayer = new Player(playerSet.getString("name"),
-                        playerSet.getString("id"),
-                        playerSet.getInt("totalattacks"),
-                        playerSet.getInt("totaldamage"));
-                existingPlayer.addDamage(player.getDamage());
-                existingPlayer.addAttacks(player.getAttacks());
-                existingPlayer.setRealName(player.getRealName());
-                if(updatePlayer(existingPlayer)) {
-                    logger.debug("updated PLAYER '{}' ({})",
-                            existingPlayer.getRealName(),
-                            existingPlayer.getId());
-                } else {
-                    logger.debug("failed to update PLAYER '{}' ({})",
-                            existingPlayer.getRealName(),
-                            existingPlayer.getId());
-                }
+                PreparedStatement statement = connection.prepareStatement("UPDATE players SET name=? WHERE id=?");
+                statement.setString(1, player.getByteName());
+                statement.setString(2, player.getId());
+                statement.execute();
             }
         } catch (SQLException exception){
             StatusUpdater.addException();
-            logger.error("could not check for PLAYER '{}' ({}) in db, nothing was altered <{}> {}",
+            logger.error("there was an error adding PLAYER '{}' ({}) to db <{}> {}",
                     player.getRealName(),
                     player.getId(),
                     exception.getMessage(),
@@ -395,28 +379,6 @@ public class DatabaseHandler {
         }
     }
 
-
-    /**
-     * Updates a given {@link Player} in the database. This does not check if the player actually exists.
-     * @param player The player whose stats (name, attacks, damage) will be updated.
-     * @return True if the player was updated as expected, otherwise false.
-     */
-    private static boolean updatePlayer(Player player) {
-        try {
-            PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE players SET name=? WHERE id=?");
-            statement.setString(1, player.getByteName());
-            statement.setInt(2, player.getAttacks());
-            statement.execute();
-            return true;
-        } catch (SQLException exception) {
-            logger.error("failed updating PLAYER '{}' <{}> {}",
-                    player.getRealName(),
-                    exception.getMessage(),
-                    exception.getStackTrace());
-            return false;
-        }
-    }
 
     /**
      * Updates a servers afktimer and command prefix in the database.
